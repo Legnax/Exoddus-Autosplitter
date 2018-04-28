@@ -33,7 +33,7 @@ state("Exoddus", "FR")
 
 startup
 {
-	settings.Add("GoG", true, "Enable if using English GoG or German game (otherwise it will load Spanish game).");
+	settings.Add("GoG", true, "Uncheck ONLY if using Spanish game.");
 	settings.Add("minesSplit", true, "Mines - Splits when Abe leaves Mines Boiler.");
 	settings.Add("necrumSplit", true, "Necrum - Ending Necrum by entering Mudomo, Mudanchee of FeeCo.");
 	settings.Add("mudomoSplit", true, "Mudomo - Ending Mudomo by entering Mudanchee or FeeCo.");
