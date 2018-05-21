@@ -1,6 +1,5 @@
 //	An autosplitter for Abe's Exoddus for PC: English, Spanish, French, German and English GoG. 
-// For GoG, Make sure the first checkbox in the options is checked.
-// For Spanish, make sure the first checkbox is DISABLED: After disabling it, you might need to close and open again the livesplit.
+//  Make sure you check either Spanish or Germa incase you are using this 2 languages: otherwise, leave everything unchecked.
 //	Created by LegnaX.
 
 state("Exoddus", "EN") // ENGLISH, GERMAN and ENGLISH GoG OFFSETS
@@ -18,7 +17,7 @@ state("Exoddus", "ES") // SPANISH OFFSETS (390 values away) (Uncheck the GoG che
 	byte PATH_ID : 0x1C33C2;
 	byte CAM_ID : 0x1C33C4;
 	byte FMV_ID : 0x1C33D2;
-	short abeY : 0x1C1EF8, 0xBE;
+	short abeY : 0x1C1EF8, 0xBE; // FMV_ID + 14DA
 }
 
 state("Exoddus", "FR")// FRENCH OFFSETS 
@@ -27,13 +26,25 @@ state("Exoddus", "FR")// FRENCH OFFSETS
 	byte PATH_ID : 0x1C3914;
 	byte CAM_ID : 0x1C3916;
 	byte FMV_ID : 0x1C391A;
-	short abeY : 0x1C2440, 0xBE;
+	short abeY : 0x1C2440, 0xBE; // FMV_ID + 14DA
+}
+
+state("Exoddus", "DE")// DEUTSCH OFFSETS 
+{	
+	byte LEVEL_ID : 0x1C3A08;
+	byte PATH_ID : 0x1C3A0A;
+	byte CAM_ID : 0x1C3A0C;
+	byte FMV_ID : 0x1C3A1A;
+	short abeY : 0x1C2540, 0xBE; // FMV_ID + 14DA
 }
 
 startup
 {
-	settings.Add("GoG", true, "Uncheck ONLY if you are using Spanish game.");
-	settings.SetToolTip("GoG", "For some odd reason, the ModuleMemorySize of the GoG version and the Spanish version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
+	settings.Add("Spanish", false, "Check ONLY if you are using Spanish game.");
+	settings.SetToolTip("Spanish", "For some odd reason, the ModuleMemorySize of the English version and the Spanish version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
+	
+	settings.Add("German", false, "Check ONLY if you are using German game.");
+	settings.SetToolTip("German", "For some odd reason, the ModuleMemorySize of the French version and the German version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
 	
 	settings.Add("minesSplit", true, "Mines - Splits when Abe leaves Mines Boiler.");
 	settings.Add("minesExtended", false, "One split each Tunnel (put mouse here for more info).", "minesSplit");
@@ -90,17 +101,26 @@ startup
 
 init
 {	
-	if (modules.First().ModuleMemorySize == 8785920 && settings["GoG"] == false){ // That module is for spanish. Same module as German or EN GoG game.
-		version = "ES" ;
+	if (modules.First().ModuleMemorySize == 8785920){ // That module is for spanish. Same module as German or EN GoG game.
+		if (settings["Spanish"]){
+			version = "ES" ;
+		} else {
+			version = "EN" ;			
+		}
 	} else if (modules.First().ModuleMemorySize == 8790016){ // That module is for french game.
-		version = "FR" ;
-	} else { // Any differnet module (like GoG or unknown lang) will be loaded here. You need this for English or German.
+		if (settings["German"]){
+			version = "DE" ;
+		} else {
+			version = "FR" ;			
+		}
+	} else { // Any different module (like GoG or unknown lang) will be loaded here. You need this for English or German.
 		version = "EN" ;
 	}	
 	refreshRate = 15;	// Refresh rate of the script (per second).
 	vars.LOG_LastSplit = "No split yet. Game version: " + version;
 	vars.LOG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.LOG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
+	vars.LOG_ModuleMemory = modules.First().ModuleMemorySize;
 	vars.preSplitNecrum = false;
 	vars.preSplitMudomo = false;
 	vars.preSplitMudanchee = false;
@@ -118,11 +138,21 @@ init
 start
 {
 	refreshRate = 15;	
-	if (!settings["GoG"] && version.Contains("EN")) { // We switch to spanish
-		version = "ES";
-	}	
-	if (settings["GoG"] && version.Contains("ES")) { // We switch to english
-		version = "EN";
+	// if (!settings["GoG"] && version.Contains("EN")) { // We switch to spanish
+		// version = "ES";
+	// }	
+	// if (settings["GoG"] && version.Contains("ES")) { // We switch to english
+		// version = "EN";
+	// }
+	
+	if (current.PATH_ID == 0) { // Wrong values, we switch ModuleMemory.
+		if (modules.First().ModuleMemorySize == 8785920){ 
+			version = "ES" ;
+			vars.LOG_LastSplit = "No split yet. Game version: " + version;
+		} else if (modules.First().ModuleMemorySize == 8790016){
+			version = "DE" ;
+			vars.LOG_LastSplit = "No split yet. Game version: " + version;
+		}
 	}
 	
 	if (current.LEVEL_ID == 01 && current.PATH_ID == 1 && current.CAM_ID == 4 && current.abeY == 1500 && old.abeY < 1500 && old.abeY > 100) {
