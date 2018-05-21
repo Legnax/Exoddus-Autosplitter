@@ -961,8 +961,8 @@ split
 	//////////////////////////////
 		
 	// Hub III	
-		if (settings["hub3Split"] && current.LEVEL_ID == 9){
-			if (settings["hub3Extended"]){ // 86 - 89
+		if (settings["hub3Split"]){
+			if (settings["hub3Extended"] && current.LEVEL_ID == 9){ // 86 - 89
 			// Zulag 11
 				if (old.PATH_ID == 9 && current.PATH_ID == 25 && vars.splits[86] != true) {
 					vars.splits[86] = true;
@@ -996,13 +996,15 @@ split
 				}
 			}
 			
-			if (current.LEVEL_ID == 10 && current.PATH_ID == 1 && vars.splits[11] != true) { // Hub 3
+		// Hub 3
+			if (current.LEVEL_ID == 10 && current.PATH_ID == 1 && vars.splits[11] != true) {
 				vars.splits[11] = true;
 				vars.LOG_LastSplit = "Hub 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
-	}
+		}
+			
 	//////////////////////////////
 
 	// Soulstorm Brewery		
