@@ -120,6 +120,7 @@ init
 	vars.LOG_LastSplit = "No split yet. Game version: " + version;
 	vars.LOG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.LOG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
+	vars.LOG_CurrentTime = "[00:00:00.000]";
 	vars.LOG_ModuleMemory = modules.First().ModuleMemorySize;
 	vars.preSplitNecrum = false;
 	vars.preSplitMudomo = false;
@@ -175,7 +176,8 @@ reset
 }
 
 split
-{	
+{		
+	vars.LOG_CurrentTime = "[" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
 	if (System.Convert.ToString(timer.CurrentTime.RealTime).Contains("00:00:00")) { // Used for resetting the main variables of the program if the timer resets. 		
 		vars.SplitFeeco2 = false;
 		vars.preSplitNecrum = false;
@@ -194,7 +196,7 @@ split
 				// Tunnel 1 SPLIT
 					if (current.FMV_ID == 71 && vars.splits[14] != true) {
 						vars.splits[14] = true;
-						vars.LOG_LastSplit = "Tunnel 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -202,7 +204,7 @@ split
 				// Tunnel 2 SPLIT
 					if (old.PATH_ID == 2 && current.PATH_ID == 3 && vars.splits[15] != true) {
 						vars.splits[15] = true;
-						vars.LOG_LastSplit = "Tunnel 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -210,7 +212,7 @@ split
 				// Slog SPLIT
 					if (old.PATH_ID == 3 && current.PATH_ID == 4 && vars.splits[16] != true) {
 						vars.splits[16] = true;
-						vars.LOG_LastSplit = "Slogs. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Slogs. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -218,7 +220,7 @@ split
 				// Tunnel 3 SPLIT
 					if (current.FMV_ID == 32 && vars.splits[17] != true) {
 						vars.splits[17] = true;
-						vars.LOG_LastSplit = "Tunnel 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -226,7 +228,7 @@ split
 				// Tunnel 4 SPLIT
 					if (current.FMV_ID == 17 && vars.splits[18] != true) {
 						vars.splits[18] = true;
-						vars.LOG_LastSplit = "Tunnel 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 4. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -234,7 +236,7 @@ split
 				// Tunnel 5 SPLIT
 					if (current.FMV_ID == 5 && vars.splits[19] != true) {
 						vars.splits[19] = true;
-						vars.LOG_LastSplit = "Tunnel 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 5. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -242,7 +244,7 @@ split
 				// Tunnel 6 SPLIT
 					if (current.FMV_ID == 30 && vars.splits[20] != true) {
 						vars.splits[20] = true;
-						vars.LOG_LastSplit = "Tunnel 6. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 6. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -250,7 +252,7 @@ split
 				// Tunnel 7 SPLIT
 					if (current.FMV_ID == 28 && vars.splits[21] != true) {
 						vars.splits[21] = true;
-						vars.LOG_LastSplit = "Tunnel 7. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Tunnel 7. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -259,7 +261,7 @@ split
 			// MINES SPLIT
 				if (current.FMV_ID == 232 && vars.splits[0] != true) {
 					vars.splits[0] = true;
-						vars.LOG_LastSplit = "Mines, last split. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mines, last split. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -274,7 +276,7 @@ split
 			// Mudomo Entry 1
 				if (current.FMV_ID == 29 && vars.splits[30] != true) {
 						vars.splits[30] = true;
-						vars.LOG_LastSplit = "Mudomo Entry 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Entry 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -282,7 +284,7 @@ split
 			// Mudomo Entry 2
 				if (current.FMV_ID == 33 && vars.splits[31] != true) {
 						vars.splits[31] = true;
-						vars.LOG_LastSplit = "Mudomo Entry 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Entry 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -290,7 +292,7 @@ split
 			// Mudomo Entry 3
 				if (current.PATH_ID == 8 && vars.splits[32] != true) {
 						vars.splits[32] = true;
-						vars.LOG_LastSplit = "Mudomo Entry 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Entry 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -298,7 +300,7 @@ split
 			// Mudomo Trial 1
 				if (current.FMV_ID == 13 && vars.splits[33] != true) {
 						vars.splits[33] = true;
-						vars.LOG_LastSplit = "Mudomo Trial 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Trial 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -306,7 +308,7 @@ split
 			// Mudomo Trial 2
 				if (current.FMV_ID == 17 && vars.splits[34] != true) {
 						vars.splits[34] = true;
-						vars.LOG_LastSplit = "Mudomo Trial 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Trial 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -314,7 +316,7 @@ split
 			// Mudomo Trial 3
 				if (current.FMV_ID == 15 && vars.splits[35] != true) {
 						vars.splits[35] = true;
-						vars.LOG_LastSplit = "Mudomo Trial 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Trial 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -322,7 +324,7 @@ split
 			// Mudomo Trial 4
 				if (current.FMV_ID == 9 && vars.splits[36] != true) {
 						vars.splits[36] = true;
-						vars.LOG_LastSplit = "Mudomo Trial 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Trial 4. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -330,7 +332,7 @@ split
 			// Mudomo Trial 5
 				if (current.FMV_ID == 6 && vars.splits[37] != true) {
 						vars.splits[37] = true;
-						vars.LOG_LastSplit = "Mudomo Trial 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Trial 5. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -338,7 +340,7 @@ split
 			// Mudomo Trial 6
 				if (current.FMV_ID == 31 && vars.splits[38] != true) {
 						vars.splits[38] = true;
-						vars.LOG_LastSplit = "Mudomo Trial 6. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudomo Trial 6. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -348,7 +350,7 @@ split
 		// Mudomo Vaults
 			if (old.LEVEL_ID == 11 && current.LEVEL_ID == 2 && vars.splits[39] != true) {
 				vars.splits[39] = true;
-				vars.LOG_LastSplit = "Mudomo Vaults. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Mudomo Vaults. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -361,7 +363,7 @@ split
 		// Mudomo split
 			if (vars.countToMud >= 90 && ((current.LEVEL_ID == 4 && current.PATH_ID == 6 && current.CAM_ID == 23 && current.FMV_ID == 34 && vars.preSplitMudomo) || (old.PATH_ID == 3 && current.PATH_ID == 1 && current.LEVEL_ID == 5)) && vars.splits[2] != true) { 
 				vars.splits[2] = true;
-				vars.LOG_LastSplit = "Mudomo. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Mudomo. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -375,7 +377,7 @@ split
 				// Mudanchee Entry 1
 					if (current.FMV_ID == 25 && vars.splits[40] != true) {
 						vars.splits[40] = true;
-						vars.LOG_LastSplit = "Mudanchee Entry 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Entry 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -383,7 +385,7 @@ split
 				// Mudanchee Entry 2
 					if (current.FMV_ID == 30 && vars.splits[41] != true) {
 						vars.splits[41] = true;
-						vars.LOG_LastSplit = "Mudanchee Entry 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Entry 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -391,7 +393,7 @@ split
 				// Mudanchee Entry 3
 					if (current.FMV_ID == 28 && vars.splits[42] != true) {
 						vars.splits[42] = true;
-						vars.LOG_LastSplit = "Mudanchee Entry 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Entry 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -399,7 +401,7 @@ split
 				// Mudanchee Entry 4
 					if (current.PATH_ID == 7 && old.CAM_ID == 2 && current.CAM_ID == 4 && vars.splits[43] != true) {
 						vars.splits[43] = true;
-						vars.LOG_LastSplit = "Mudanchee Entry 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Entry 4. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -407,7 +409,7 @@ split
 				// Mudanchee Trial 1
 					if (current.FMV_ID == 2 && vars.splits[44] != true) {
 						vars.splits[44] = true;
-						vars.LOG_LastSplit = "Mudanchee Trial 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Trial 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -415,7 +417,7 @@ split
 				// Mudanchee Trial 2
 					if (current.FMV_ID == 6 && vars.splits[45] != true) {
 						vars.splits[45] = true;
-						vars.LOG_LastSplit = "Mudanchee Trial 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Trial 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -423,7 +425,7 @@ split
 				// Mudanchee Trial 3
 					if (current.FMV_ID == 23 && vars.splits[46] != true) {
 						vars.splits[46] = true;
-						vars.LOG_LastSplit = "Mudanchee Trial 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Trial 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -431,7 +433,7 @@ split
 				// Mudanchee Trial 4
 					if (current.FMV_ID == 14 && vars.splits[47] != true) {
 						vars.splits[47] = true;
-						vars.LOG_LastSplit = "Mudanchee Trial 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Trial 4. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -439,7 +441,7 @@ split
 				// Mudanchee Trial 5
 					if (current.FMV_ID == 3 && vars.splits[48] != true) {
 						vars.splits[48] = true;
-						vars.LOG_LastSplit = "Mudanchee Trial 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Trial 5. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -447,7 +449,7 @@ split
 				// Mudanchee Trial 6
 					if (current.FMV_ID == 11 && vars.splits[49] != true) {
 						vars.splits[49] = true;
-						vars.LOG_LastSplit = "Mudanchee Trial 6. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Mudanchee Trial 6. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -456,7 +458,7 @@ split
 			// Mudanchee Vaults
 				if (current.LEVEL_ID == 7 && current.FMV_ID == 26 && vars.splits[50] != true) { 
 					vars.splits[50] = true;
-					vars.LOG_LastSplit = "Mudanchee Vaults. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Mudanchee Vaults. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -468,7 +470,7 @@ split
 			
 			if (vars.countToMud >= 90 && ((current.LEVEL_ID == 3 && current.PATH_ID == 1 && current.CAM_ID == 1 && current.FMV_ID == 25 && vars.preSplitMudanchee) || (old.PATH_ID == 3 && current.PATH_ID == 1 && current.LEVEL_ID == 5)) && vars.splits[3] != true) { // Mudanchee Split: we are in Mudomo or Wheel to FeeCo. 
 				vars.splits[3] = true;
-				vars.LOG_LastSplit = "Mudanchee. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Mudanchee. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -482,7 +484,7 @@ split
 				// Necrum Entry SPLIT
 					if (current.FMV_ID == 10 && vars.splits[22] != true) {
 						vars.splits[22] = true;
-						vars.LOG_LastSplit = "Necrum Entry. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Necrum Entry. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -490,7 +492,7 @@ split
 				// Hands SPLIT
 					if (current.FMV_ID == 9 && vars.splits[23] != true) {
 						vars.splits[23] = true;
-						vars.LOG_LastSplit = "Handstones. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Handstones. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -498,7 +500,7 @@ split
 				// Fleeches Entry SPLIT
 					if (current.FMV_ID == 6 && vars.splits[24] != true) {
 						vars.splits[24] = true;
-						vars.LOG_LastSplit = "Fleeches Entry. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Fleeches Entry. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -506,7 +508,7 @@ split
 				// Fleeches 1 SPLIT
 					if (current.FMV_ID == 18 && vars.splits[25] != true) {
 						vars.splits[25] = true;
-						vars.LOG_LastSplit = "Fleeches 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Fleeches 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -514,7 +516,7 @@ split
 				// Fleeches 2 SPLIT
 					if (current.FMV_ID == 19 && vars.splits[26] != true) {
 						vars.splits[26] = true;
-						vars.LOG_LastSplit = "Fleeches 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Fleeches 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -522,7 +524,7 @@ split
 				// Fleeches 3 SPLIT
 					if (current.FMV_ID == 20 && vars.splits[27] != true) {
 						vars.splits[27] = true;
-						vars.LOG_LastSplit = "Fleeches 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Fleeches 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -530,7 +532,7 @@ split
 				// Fleeches 4 SPLIT
 					if (current.FMV_ID == 21 && vars.splits[28] != true) {
 						vars.splits[28] = true;
-						vars.LOG_LastSplit = "Fleeches 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Fleeches 4. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -538,7 +540,7 @@ split
 				// Fleeches 5 SPLIT
 					if (current.FMV_ID == 15 && vars.splits[29] != true) {
 						vars.splits[29] = true;
-						vars.LOG_LastSplit = "Fleeches 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Fleeches 5. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -555,7 +557,7 @@ split
 				vars.splits[1] = true;
 				vars.preSplitNecrum = false;
 				vars.countToMud = 1;
-				vars.LOG_LastSplit = "Necrum to Mudomo / Mudanchee. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Necrum to Mudomo / Mudanchee. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -565,7 +567,7 @@ split
 				vars.splits[2] = true; // We will not use it anymore.
 				vars.splits[3] = true; // We will not use it anymore.
 				vars.preSplitNecrum = false;
-				vars.LOG_LastSplit = "Necrum to FeeCo. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Necrum to FeeCo. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -578,7 +580,7 @@ split
 			// FeeCo Entry
 				if (current.PATH_ID == 1 && current.CAM_ID == 3 && vars.splits[51] != true) {
 					vars.splits[51] = true;
-					vars.LOG_LastSplit = "FeeCo Entry. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "FeeCo Entry. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -586,7 +588,7 @@ split
 			// Terminal 1
 				if (current.PATH_ID == 7 && current.CAM_ID == 1 && vars.splits[52] != true) {
 					vars.splits[52] = true;
-					vars.LOG_LastSplit = "Terminal 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Terminal 1. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -594,7 +596,7 @@ split
 			// Terminal 2
 				if (current.PATH_ID == 2 && current.CAM_ID == 8 && vars.splits[53] != true) {
 					vars.splits[53] = true;
-					vars.LOG_LastSplit = "Terminal 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Terminal 2. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -602,7 +604,7 @@ split
 			// Terminal principal to Slig Barracks
 				if (old.PATH_ID == 9 && current.PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 3
 					vars.splits[54] = true;
-					vars.LOG_LastSplit = "Main Terminal to Terminal 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Main Terminal to Terminal 3. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -610,7 +612,7 @@ split
 			// Terminal principal to Bonewerkz
 				if (old.PATH_ID == 9 && current.PATH_ID == 4 && vars.splits[54] != true) { // If I enter on Terminal 4
 					vars.splits[54] = true;
-					vars.LOG_LastSplit = "Main Terminal to Terminal 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Main Terminal to Terminal 4. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -618,7 +620,7 @@ split
 			// Terminal principal to Soulstorm Brewery
 				if (old.PATH_ID == 2 && current.PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 5
 					vars.splits[54] = true;
-					vars.LOG_LastSplit = "Main Terminal to Terminal 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Main Terminal to Terminal 5. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -626,7 +628,7 @@ split
 			// Terminal 3
 				if (current.PATH_ID == 5 && old.CAM_ID == 3 && current.CAM_ID == 14 && vars.splits[55] != true) {
 					vars.splits[55] = true;
-					vars.LOG_LastSplit = "Terminal 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Terminal 3. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -634,7 +636,7 @@ split
 			// Terminal 4
 				if (current.PATH_ID == 4 && old.CAM_ID == 13 && current.CAM_ID == 14 && vars.splits[55] != true) {
 					vars.splits[55] = true;
-					vars.LOG_LastSplit = "Terminal 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Terminal 4. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -642,7 +644,7 @@ split
 			// Terminal 5
 				if (current.PATH_ID == 5 && old.CAM_ID == 7 && current.CAM_ID == 14 && vars.splits[55] != true) {
 					vars.splits[55] = true;
-					vars.LOG_LastSplit = "Terminal 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Terminal 5. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -654,11 +656,11 @@ split
 			vars.splitsFeeCoAgain = vars.splits[4];
 			vars.splits[8] = true; // We avoid double split if we go from FeeCo to Soulstorm directly.
 			if (vars.splits[5]) { // Slig Barracks ya fue completado.
-				vars.LOG_LastSplit = "FeeCo 2 to Bonewerkz. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "FeeCo 2 to Bonewerkz. " + vars.LOG_CurrentTime;
 			} else if (vars.splits[6]){ // Bonewerkz ya fue completado.
-				vars.LOG_LastSplit = "FeeCo 2 to Slig Barracks. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";		
+				vars.LOG_LastSplit = "FeeCo 2 to Slig Barracks. " + vars.LOG_CurrentTime;		
 			} else { // Nada fue completado.
-				vars.LOG_LastSplit = "FeeCo 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "FeeCo 1. " + vars.LOG_CurrentTime;
 			}
 			vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 			return true;
@@ -671,7 +673,7 @@ split
 			// Block 0
 				if (old.PATH_ID == 13 && current.PATH_ID == 2 && vars.splits[56] != true) {
 					vars.splits[56] = true;
-					vars.LOG_LastSplit = "Block 0. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Block 0. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -679,7 +681,7 @@ split
 			// Block 1
 				if (old.PATH_ID == 10 && current.PATH_ID == 2 && vars.splits[57] != true) {
 					vars.splits[57] = true;
-					vars.LOG_LastSplit = "Block 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Block 1. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -687,7 +689,7 @@ split
 			// Block 2
 				if (old.PATH_ID == 5 && current.PATH_ID == 2 && vars.splits[58] != true) {
 					vars.splits[58] = true;
-					vars.LOG_LastSplit = "Block 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Block 2. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -695,7 +697,7 @@ split
 			// Block 3
 				if (old.PATH_ID == 7 && current.PATH_ID == 2 && vars.splits[59] != true) {
 					vars.splits[59] = true;
-					vars.LOG_LastSplit = "Block 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Block 3. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -703,7 +705,7 @@ split
 			// Block 4
 				if (old.PATH_ID == 14 && current.PATH_ID == 2 && vars.splits[60] != true) {
 					vars.splits[60] = true;
-					vars.LOG_LastSplit = "Block 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Block 4. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}			
@@ -713,7 +715,7 @@ split
 		// Dripik
 			if (current.LEVEL_ID == 13 && old.PATH_ID == 11 && current.PATH_ID == 16 && vars.splits[61] != true) {
 				vars.splits[61] = true;
-				vars.LOG_LastSplit = "Dripik. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Dripik. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -727,7 +729,7 @@ split
 					vars.splitsFeeCoAgain = vars.splits[4];
 					vars.SplitFeeco2 = true;
 				}
-				vars.LOG_LastSplit = "Slig Barracks. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Slig Barracks. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -741,7 +743,7 @@ split
 				// Bonewerkz Entry
 					if (old.PATH_ID == 1 && current.PATH_ID == 7 && vars.splits[63] != true) {
 						vars.splits[63] = true;
-						vars.LOG_LastSplit = "Bonewerkz Entry. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Bonewerkz Entry. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -749,7 +751,7 @@ split
 				// Annex 1
 					if (old.PATH_ID == 7 && current.PATH_ID == 1 && vars.splits[64] != true) {
 						vars.splits[64] = true;
-						vars.LOG_LastSplit = "Annex 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 1. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -757,7 +759,7 @@ split
 				// Annex 2
 					if (old.PATH_ID == 1 && current.PATH_ID == 2 && vars.splits[65] != true) {
 						vars.splits[65] = true;
-						vars.LOG_LastSplit = "Annex 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 2. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -765,7 +767,7 @@ split
 				// Annex 3
 					if (current.PATH_ID == 2 && current.CAM_ID == 4 && vars.splits[66] != true) {
 						vars.splits[66] = true;
-						vars.LOG_LastSplit = "Annex 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 3. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -773,7 +775,7 @@ split
 				// Annex 4
 					if (current.PATH_ID == 2 && current.CAM_ID == 7 && vars.splits[67] != true) {
 						vars.splits[67] = true;
-						vars.LOG_LastSplit = "Annex 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 4. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -781,7 +783,7 @@ split
 				// Annex 5
 					if (current.PATH_ID == 2 && current.CAM_ID == 9 && vars.splits[68] != true) {
 						vars.splits[68] = true;
-						vars.LOG_LastSplit = "Annex 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 5. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -789,7 +791,7 @@ split
 				// Annex 6
 					if (old.PATH_ID == 2 && current.PATH_ID == 3 && vars.splits[69] != true) {
 						vars.splits[69] = true;
-						vars.LOG_LastSplit = "Annex 6. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 6. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -797,7 +799,7 @@ split
 				// Annex 7
 					if (old.PATH_ID == 3 && current.PATH_ID == 4 && vars.splits[70] != true) {
 						vars.splits[70] = true;
-						vars.LOG_LastSplit = "Annex 7. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 7. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -807,7 +809,7 @@ split
 				// Annex 8
 					if (current.PATH_ID == 14 && vars.splits[71] != true) {
 						vars.splits[71] = true;
-						vars.LOG_LastSplit = "Annex 8. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Annex 8. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -815,7 +817,7 @@ split
 				// Phleg
 					if (current.PATH_ID == 9 && old.CAM_ID == 9 && current.CAM_ID == 8 && vars.splits[72] != true) {
 						vars.splits[72] = true;
-						vars.LOG_LastSplit = "Phleg. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+						vars.LOG_LastSplit = "Phleg. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 						return true;
 					}
@@ -843,7 +845,7 @@ split
 			// Entry Executive Office
 				if (old.CAM_ID == 4 && current.CAM_ID == 5 && vars.splits[73] != true) {
 					vars.splits[73] = true;
-					vars.LOG_LastSplit = "Entry Executive Office. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Entry Executive Office. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -851,7 +853,7 @@ split
 			// Aslik
 				if (old.CAM_ID == 8 && current.CAM_ID == 2 && vars.splits[74] != true) {
 					vars.splits[74] = true;
-					vars.LOG_LastSplit = "Aslik. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Aslik. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -859,7 +861,7 @@ split
 			
 			if (old.LEVEL_ID == 12 && current.LEVEL_ID == 5 && vars.splits[7] != true) {
 				vars.splits[7] = true;
-				vars.LOG_LastSplit = "Executive Office. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Executive Office. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -869,7 +871,7 @@ split
 	// FeeCo 3 (LEVEL_ID 5)
 		if (settings["feeco3Split"] && old.LEVEL_ID == 5 && current.LEVEL_ID == 9 && vars.splits[8] != true) {	
 			vars.splits[8] = true;
-				vars.LOG_LastSplit = "FeeCo to Terminal 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "FeeCo to Terminal 5. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 			return true;
 		}
@@ -880,7 +882,7 @@ split
 			// SoulStorm Brewery Entry
 				if (old.PATH_ID == 16 && current.PATH_ID == 23 && vars.splits[75] != true) {
 					vars.splits[75] = true;
-					vars.LOG_LastSplit = "Zulag 0 (Soulstorm Brewery Entry). [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 0 (Soulstorm Brewery Entry). " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -888,7 +890,7 @@ split
 			// Zulag 1
 				if (old.PATH_ID == 1 && current.PATH_ID == 23 && vars.splits[76] != true) {
 					vars.splits[76] = true;
-					vars.LOG_LastSplit = "Zulag 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 1. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -896,7 +898,7 @@ split
 			// Zulag 2
 				if (old.PATH_ID == 2 && current.PATH_ID == 23 && vars.splits[77] != true) {
 					vars.splits[77] = true;
-					vars.LOG_LastSplit = "Zulag 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 2. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -904,7 +906,7 @@ split
 			// Zulag 3
 				if (old.PATH_ID == 12 && current.PATH_ID == 23 && vars.splits[78] != true) {
 					vars.splits[78] = true;
-					vars.LOG_LastSplit = "Zulag 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 3. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -912,7 +914,7 @@ split
 			// Zulag 4
 				if (old.PATH_ID == 19 && current.PATH_ID == 23 && vars.splits[79] != true) {
 					vars.splits[79] = true;
-					vars.LOG_LastSplit = "Zulag 4. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 4. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -920,7 +922,7 @@ split
 			// Zulag 5
 				if (old.PATH_ID == 14 && current.PATH_ID == 23 && vars.splits[80] != true) {
 					vars.splits[80] = true;
-					vars.LOG_LastSplit = "Zulag 5. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 5. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -929,7 +931,7 @@ split
 		// Hub 1
 			if (old.PATH_ID == 23 && current.PATH_ID == 24 && vars.splits[9] != true) { 
 				vars.splits[9] = true;
-				vars.LOG_LastSplit = "Hub 1. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Hub 1. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -942,7 +944,7 @@ split
 			// Zulag 6
 				if (old.PATH_ID == 5 && current.PATH_ID == 24 && vars.splits[81] != true) {
 					vars.splits[81] = true;
-					vars.LOG_LastSplit = "Zulag 6. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 6. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -950,7 +952,7 @@ split
 			// Zulag 7
 				if (old.PATH_ID == 6 && current.PATH_ID == 24 && vars.splits[82] != true) {
 					vars.splits[82] = true;
-					vars.LOG_LastSplit = "Zulag 7. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 7. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -958,7 +960,7 @@ split
 			// Zulag 8
 				if (old.PATH_ID == 3 && current.PATH_ID == 24 && vars.splits[83] != true) {
 					vars.splits[83] = true;
-					vars.LOG_LastSplit = "Zulag 8. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 8. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -966,7 +968,7 @@ split
 			// Zulag 9
 				if (old.PATH_ID == 17 && current.PATH_ID == 24 && vars.splits[84] != true) {
 					vars.splits[84] = true;
-					vars.LOG_LastSplit = "Zulag 9. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 9. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -974,7 +976,7 @@ split
 			// Zulag 10
 				if (old.PATH_ID == 10 && current.PATH_ID == 24 && vars.splits[85] != true) {
 					vars.splits[85] = true;
-					vars.LOG_LastSplit = "Zulag 10. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 10. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -983,7 +985,7 @@ split
 		// Hub 2
 			if (old.PATH_ID == 24 && current.PATH_ID == 25 && vars.splits[10] != true) {
 				vars.splits[10] = true;
-				vars.LOG_LastSplit = "Hub 2. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Hub 2. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -996,14 +998,14 @@ split
 			// Zulag 11
 				if (old.PATH_ID == 9 && current.PATH_ID == 25 && vars.splits[86] != true) {
 					vars.splits[86] = true;
-					vars.LOG_LastSplit = "Zulag 11. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 11. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
 			// Zulag 12
 				if (old.PATH_ID == 11 && current.PATH_ID == 25 && vars.splits[87] != true) {
 					vars.splits[87] = true;
-					vars.LOG_LastSplit = "Zulag 12. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 12. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -1011,7 +1013,7 @@ split
 			// Zulag 13
 				if (old.PATH_ID == 20 && current.PATH_ID == 25 && vars.splits[88] != true) {
 					vars.splits[88] = true;
-					vars.LOG_LastSplit = "Zulag 13. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 13. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -1020,7 +1022,7 @@ split
 			// Zulag 14
 				if (old.PATH_ID == 4 && current.PATH_ID == 25 && vars.splits[89] != true) {
 					vars.splits[89] = true;
-					vars.LOG_LastSplit = "Zulag 14. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+					vars.LOG_LastSplit = "Zulag 14. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
@@ -1029,7 +1031,7 @@ split
 		// Hub 3
 			if (current.LEVEL_ID == 10 && current.PATH_ID == 1 && vars.splits[11] != true) {
 				vars.splits[11] = true;
-				vars.LOG_LastSplit = "Hub 3. [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+				vars.LOG_LastSplit = "Hub 3. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 				return true;
 			}
@@ -1040,7 +1042,7 @@ split
 	// Soulstorm Brewery		
 		if (settings["boilerSplit"] && current.LEVEL_ID == 10 && (current.FMV_ID == 17 || current.FMV_ID == 18 || current.CAM_ID == 15) && vars.splits[12] != true) {		
 			vars.splits[12] = true;	
-			vars.LOG_LastSplit = "Zulag 15. Game is over! FINAL TIME-> [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+			vars.LOG_LastSplit = "Zulag 15. Game is over! FINAL TIME-> " + vars.LOG_CurrentTime;
 			vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 			return true;	
 		}
@@ -1077,7 +1079,7 @@ split
 	if (current.LEVEL_ID == 0){ // Reset?
 		if (old.LEVEL_ID == 0 && old.PATH_ID == 1 && current.PATH_ID == 1 && old.CAM_ID == 1 && current.CAM_ID == 12){ // Reset (main menu)
 			vars.ResetStatus = 1;	
-			vars.LOG_LastSplit = "Reset (Main Menu) [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+			vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
 			vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";	
 		}
 	}
@@ -1085,7 +1087,7 @@ split
 	if (current.LEVEL_ID == 1 && current.CAM_ID == 4 && current.PATH_ID == 1){ // Reset? 
 		if (current.abeY < 1400 && current.abeY > 1 && vars.ResetAllowed){ // Reset (Tunnel 1 restart path)
 			vars.ResetStatus = 1;
-			vars.LOG_LastSplit = "Reset (Tunnel 1) [" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+			vars.LOG_LastSplit = "Reset (Tunnel 1) " + vars.LOG_CurrentTime;
 			vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";	
 		}
 	}
