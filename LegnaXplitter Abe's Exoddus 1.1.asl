@@ -115,6 +115,8 @@ init
 		}
 	} else if (modules.First().ModuleMemorySize == 9142272){
 		version = "DE" ;
+	} else if (modules.First().ModuleMemorySize == 9138176){ // That module is for spanish. 
+		version = "ES" ;
 	} else { // Any different module (like GoG or unknown lang) will be loaded here. You need this for English or German.
 		version = "EN" ;
 	}	
