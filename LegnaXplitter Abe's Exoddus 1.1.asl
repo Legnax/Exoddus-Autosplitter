@@ -352,7 +352,7 @@ split
 			}
 			
 		// Mudomo Vaults
-			if (old.LEVEL_ID == 11 && current.LEVEL_ID == 2 && vars.splits[39] != true) {
+			if (old.LEVEL_ID == 11 && current.LEVEL_ID == 2 && settings["mudomoExtended"] && vars.splits[39] != true) {
 				vars.splits[39] = true;
 				vars.LOG_LastSplit = "Mudomo Vaults. " + vars.LOG_CurrentTime;
 				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
@@ -1089,7 +1089,7 @@ split
 	}
 	
 	if (current.LEVEL_ID == 1 && current.CAM_ID == 4 && current.PATH_ID == 1){ // Reset? 
-		if (current.abeY < 1400 && current.abeY > 1 && vars.ResetAllowed){ // Reset (Tunnel 1 restart path)
+		if (current.abeY < 1400 && current.abeY > 760 && vars.ResetAllowed){ // Reset (Tunnel 1 restart path)
 			vars.ResetStatus = 1;
 			vars.LOG_LastSplit = "Reset (Tunnel 1) " + vars.LOG_CurrentTime;
 			vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";	
