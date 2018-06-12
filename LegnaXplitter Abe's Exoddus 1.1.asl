@@ -946,7 +946,7 @@ split
 		if (settings["hub2Split"] && current.LEVEL_ID == 9){
 			if (settings["hub2Split"]){ // 81 - 85			
 			// Zulag 6
-				if (old.PATH_ID == 5 && current.PATH_ID == 24 && vars.splits[81] != true) {
+				if (old.PATH_ID == 5 && old.CAM_ID == 4 && current.PATH_ID == 24 && vars.splits[81] != true) {
 					vars.splits[81] = true;
 					vars.LOG_LastSplit = "Zulag 6. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
@@ -954,7 +954,7 @@ split
 				}
 				
 			// Zulag 7
-				if (old.PATH_ID == 6 && current.PATH_ID == 24 && vars.splits[82] != true) {
+				if (old.PATH_ID == 6 && old.CAM_ID == 10 && current.PATH_ID == 24 && vars.splits[82] != true) {
 					vars.splits[82] = true;
 					vars.LOG_LastSplit = "Zulag 7. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
@@ -1024,7 +1024,7 @@ split
 				
 				
 			// Zulag 14
-				if (old.PATH_ID == 4 && current.PATH_ID == 25 && vars.splits[89] != true) {
+				if (old.PATH_ID == 4 && old.CAM_ID == 13 && current.PATH_ID == 25 && vars.splits[89] != true) {
 					vars.splits[89] = true;
 					vars.LOG_LastSplit = "Zulag 14. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
