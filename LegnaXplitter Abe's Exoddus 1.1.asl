@@ -8,7 +8,7 @@ state("Exoddus", "EN") // ENGLISH, GERMAN and ENGLISH GoG OFFSETS
 	byte PATH_ID : 0x1C3032;
 	byte CAM_ID : 0x1C3034;
 	byte FMV_ID : 0x1C3042;
-	short abeY : 0x1C1230, 0x68, 0xBE;
+	short abeY : 0x1C1230, 0x68, 0xBE; // 1E12
 }
 
 state("Exoddus", "ES") // SPANISH OFFSETS (390 values away) (Uncheck the GoG checkbox if using spanish version; leave it checked otherwise)
@@ -22,11 +22,21 @@ state("Exoddus", "ES") // SPANISH OFFSETS (390 values away) (Uncheck the GoG che
 
 state("Exoddus", "FR")// FRENCH OFFSETS 
 {	
-	byte LEVEL_ID : 0x1C3912;
-	byte PATH_ID : 0x1C3914;
-	byte CAM_ID : 0x1C3916;
-	byte FMV_ID : 0x1C391A;
-	short abeY : 0x1C2440, 0xBE; // FMV_ID + 14DA
+	byte LEVEL_ID : 0x1C3912; // 1C3908
+	byte PATH_ID : 0x1C3914; // 1C390A
+	byte CAM_ID : 0x1C3916; // 1C390C
+	byte FMV_ID : 0x1C391A; // 1C3910
+	short abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
+}
+
+
+state("Exoddus", "FRs")// FRENCH Steam OFFSETS 
+{	
+	byte LEVEL_ID : 0x1C3908; // 1C3908
+	byte PATH_ID : 0x1C390A; // 1C390A
+	byte CAM_ID : 0x1C390C; // 1C390C
+	byte FMV_ID : 0x1C391A; // 1C3910
+	short abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
 }
 
 state("Exoddus", "DE")// DEUTSCH OFFSETS 
@@ -45,6 +55,9 @@ startup
 	
 	settings.Add("German", false, "Check ONLY if you are using German game.");
 	settings.SetToolTip("German", "For some odd reason, the ModuleMemorySize of the French version and the German version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
+	
+	settings.Add("FrenchSteam", false, "Check ONLY if you are using French STEAM game.");
+	settings.SetToolTip("FrenchSteam", "For some odd reason, the ModuleMemorySize of the French steam version and the German steam version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
 	
 	settings.Add("minesSplit", true, "Mines - Splits when Abe leaves Mines Boiler.");
 	settings.Add("minesExtended", false, "One split each Tunnel (put mouse here for more info).", "minesSplit");
@@ -114,7 +127,11 @@ init
 			version = "FR" ;			
 		}
 	} else if (modules.First().ModuleMemorySize == 9142272){
-		version = "DE" ;
+		if (settings["FrenchSteam"]){
+			version = "FRs";			
+		} else {
+			version = "DE" ;			
+		}
 	} else if (modules.First().ModuleMemorySize == 9138176){ // That module is for spanish. 
 		version = "ES" ;
 	} else { // Any different module (like GoG or unknown lang) will be loaded here. You need this for English or German.
