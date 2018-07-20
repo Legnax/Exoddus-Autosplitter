@@ -1,6 +1,6 @@
 //	An autosplitter for Abe's Exoddus for PC: English, Spanish, French, German and English GoG. 
 //  Make sure you check either Spanish or Germa incase you are using this 2 languages: otherwise, leave everything unchecked.
-//	Created by LegnaX.
+//	Created by LegnaX. Special thanks to MirkyPoo for fixing some stuff.
 
 state("Exoddus", "EN") // ENGLISH, GERMAN and ENGLISH GoG OFFSETS
 {	
@@ -53,8 +53,8 @@ startup
 	settings.Add("Spanish", false, "Check ONLY if you are using Spanish game.");
 	settings.SetToolTip("Spanish", "For some odd reason, the ModuleMemorySize of the English version and the Spanish version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
 	
-	settings.Add("German", false, "Check ONLY if you are using German game.");
-	settings.SetToolTip("German", "For some odd reason, the ModuleMemorySize of the French version and the German version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
+	settings.Add("French", false, "Check ONLY if you are using French game.");
+	settings.SetToolTip("French", "For some odd reason, the ModuleMemorySize of the French version and the German version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
 	
 	settings.Add("FrenchSteam", false, "Check ONLY if you are using French STEAM game.");
 	settings.SetToolTip("FrenchSteam", "For some odd reason, the ModuleMemorySize of the French steam version and the German steam version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
@@ -114,19 +114,19 @@ startup
 
 init
 {	
-	if (modules.First().ModuleMemorySize == 8785920){ // That module is for spanish. Same module as German or EN GoG game.
+	if (modules.First().ModuleMemorySize == 8785920){ // That module is for spanish GoG. Same module as German or EN GoG game.
 		if (settings["Spanish"]){
 			version = "ES" ;
 		} else {
 			version = "EN" ;			
 		}
-	} else if (modules.First().ModuleMemorySize == 8790016){ // That module is for french game.
-		if (settings["German"]){
-			version = "DE" ;
+	} else if (modules.First().ModuleMemorySize == 8790016){ // That module is for german or french game.
+		if (settings["French"]){
+			version = "FR" ;
 		} else {
-			version = "FR" ;			
+			version = "DE" ;			
 		}
-	} else if (modules.First().ModuleMemorySize == 9142272){
+	} else if (modules.First().ModuleMemorySize == 9142272){  // That module is for STEAM German or French game.
 		if (settings["FrenchSteam"]){
 			version = "FRs";			
 		} else {
@@ -150,6 +150,7 @@ init
 	vars.SplitFeeco2 = false;
 	vars.ResetAllowed = true;
 	vars.countToMud = 0; // We avoid doble split on Mudomo / Mudanchee splits.
+	vars.FMVNecrum = 0;
 	
 	// 0 - 13 main splits. 14 - 21 Mines. 22 - 29 Necrum. 30 - 39 Mudomo. 40 - 50 Mudanchee. 51 - 55 FeeCo. 56 - 62 Barracks. 63 - 72 Bonewerkz.
 	bool[] splitsTemp = new bool[95];
@@ -477,7 +478,7 @@ split
 				}
 				
 			// Mudanchee Vaults
-				if (current.LEVEL_ID == 7 && current.FMV_ID == 26 && vars.splits[50] != true) { 
+				if (old.LEVEL_ID == 7 && current.LEVEL_ID == 2 && vars.splits[50] != true) { 
 					vars.splits[50] = true;
 					vars.LOG_LastSplit = "Mudanchee Vaults. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
@@ -568,10 +569,15 @@ split
 				}
 				
 			// Necrum pre-SPLIT
-				if (current.PATH_ID == 5 && (current.CAM_ID == 9 || current.CAM_ID == 1) && current.FMV_ID == 8){ // Prepare for last split
+				if (current.PATH_ID == 5 && (current.CAM_ID == 9 || current.CAM_ID == 1) && vars.FMVNecrum == 8){ // Prepare for last split
 					vars.preSplitNecrum = true;
+					vars.FMVNecrum = 0;
 				}			
 			} 
+			
+			if (current.LEVEL_ID == 2 && current.FMV_ID == 8){
+				vars.FMVNecrum = current.FMV_ID;
+			}
 			
 			// Necrum SPLITS
 			if (vars.preSplitNecrum && (current.FMV_ID == 25 || current.FMV_ID == 34) && (current.LEVEL_ID >= 2 && current.LEVEL_ID <= 4) && vars.splits[1] != true) { // Cinematics: 25 is mudomo (24 end). 34 is Mudanchee (25 end). 4 is FeeCo.
@@ -1032,7 +1038,7 @@ split
 				}
 				
 			// Zulag 13
-				if (old.PATH_ID == 20 && current.PATH_ID == 25 && vars.splits[88] != true) {
+				if ((old.PATH_ID == 20 || old.PATH_ID == 15) && current.PATH_ID == 25 && vars.splits[88] != true) {
 					vars.splits[88] = true;
 					vars.LOG_LastSplit = "Zulag 13. " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
