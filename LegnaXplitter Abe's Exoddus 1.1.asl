@@ -151,6 +151,7 @@ init
 	vars.ResetAllowed = true;
 	vars.countToMud = 0; // We avoid doble split on Mudomo / Mudanchee splits.
 	vars.FMVNecrum = 0;
+	vars.PrePhlegSplit = false; // This variable checks if Phleg made it to the Glukkon intercom at least once. Prevents a wrong split if the player dies at Phleg on the last tier of Slogs.
 	
 	// 0 - 13 main splits. 14 - 21 Mines. 22 - 29 Necrum. 30 - 39 Mudomo. 40 - 50 Mudanchee. 51 - 55 FeeCo. 56 - 62 Barracks. 63 - 72 Bonewerkz.
 	bool[] splitsTemp = new bool[95];
@@ -205,7 +206,9 @@ split
 		vars.preSplitNecrum = false;
 		vars.preSplitMudomo = false;
 		vars.preSplitMudanchee = false;
-		vars.splitsFeeCoAgain = false;
+		vars.splitsFeeCoAgain = false;		
+		vars.PrePhlegSplit = false; // This variable checks if Phleg made it to the Glukkon intercom at least once. Prevents a wrong split if the player dies at Phleg on the last tier of Slogs.
+	
 		bool[] splitsTemp = new bool[95];	
 		vars.splits = splitsTemp;	
 		vars.countToMud = 0;
@@ -841,11 +844,16 @@ split
 						return true;
 					}
 					
+					if (current.LEVEL_ID == 14 && current.PATH_ID == 9 && current.CAM_ID == 15) { // Screen with the glukkon intercom phone
+						vars.PrePhlegSplit = true;
+					}
+					
 				// Phleg
-					if (current.PATH_ID == 9 && old.CAM_ID == 9 && current.CAM_ID == 8 && vars.splits[72] != true) {
+					if (vars.PrePhlegSplit && current.PATH_ID == 9 && old.CAM_ID == 9 && current.CAM_ID == 8 && vars.splits[72] != true) {
 						vars.splits[72] = true;
 						vars.LOG_LastSplit = "Phleg. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
+						vars.PrePhlegSplit = false;
 						return true;
 					}
 				}
