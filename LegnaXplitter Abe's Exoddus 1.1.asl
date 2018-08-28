@@ -1,5 +1,5 @@
 //	An autosplitter for Abe's Exoddus for PC: English, Spanish, French, German and English GoG. 
-//  Make sure you check either Spanish or Germa incase you are using this 2 languages: otherwise, leave everything unchecked.
+//  Make sure you check either Spanish or French incase you are using this 2 languages: otherwise, leave everything unchecked.
 //	Created by LegnaX. Special thanks to MirkyPoo for fixing some stuff.
 
 state("Exoddus", "EN") // ENGLISH, GERMAN and ENGLISH GoG OFFSETS
@@ -975,7 +975,7 @@ split
 
 	// Hub II
 		if (settings["hub2Split"] && current.LEVEL_ID == 9){
-			if (settings["hub2Split"]){ // 81 - 85			
+			if (settings["hub2Extended"]){ // 81 - 85			
 			// Zulag 6
 				if (old.PATH_ID == 5 && old.CAM_ID == 4 && current.PATH_ID == 24 && vars.splits[81] != true) {
 					vars.splits[81] = true;
