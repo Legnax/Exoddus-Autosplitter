@@ -1,6 +1,6 @@
-//	An autosplitter for Abe's Exoddus for PC: English, Spanish, French, German and English GoG. 
-//  Make sure you check either Spanish or French incase you are using this 2 languages: otherwise, leave everything unchecked.
-//	Created by LegnaX. Special thanks to MirkyPoo for fixing some stuff.
+//  An autosplitter for Abe's Exoddus for PC: English, Spanish, French, German and English GoG. 
+//  Make sure you check either Spanish or Germa incase you are using this 2 languages: otherwise, leave everything unchecked.
+//  Created by LegnaX. Special thanks to MirkyPoo for fixing some stuff.
 
 state("Exoddus", "EN") // ENGLISH, GERMAN and ENGLISH GoG OFFSETS
 {	
@@ -50,6 +50,8 @@ state("Exoddus", "DE")// DEUTSCH OFFSETS
 
 startup
 {
+	settings.Add("version", true, "Version 1.3. By LegnaX. https://github.com/Legnax/Exoddus-Autosplitter");
+	
 	settings.Add("Spanish", false, "Check ONLY if you are using Spanish game.");
 	settings.SetToolTip("Spanish", "For some odd reason, the ModuleMemorySize of the English version and the Spanish version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
 	
@@ -605,7 +607,14 @@ split
 	//////////////////////////////
 
 	// FeeCo & FeeCo 2 (LEVEL_ID 5)
-		if (settings["feecoSplit"]) { 
+		if (settings["feecoSplit"]) { 					
+			if (settings["feecoExtended"] && current.LEVEL_ID == 2 && old.PATH_ID == 3 && old.CAM_ID == 2 && current.PATH_ID == 3 && current.CAM_ID == 9 && vars.splits[1] == true && vars.splits[2] == true && vars.splits[3] == true) { // SPECIAL: FeeCo entry through Necrum using Farewell FeeCo skip
+				vars.splits[51] = true;
+				vars.LOG_LastSplit = "Special split: Necrum to Terminal 1 (Any% | Farewell FeeCo skip). " + vars.LOG_CurrentTime;
+				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
+				return true;
+			}
+			
 			if (settings["feecoExtended"] && current.LEVEL_ID == 5) { // 51 - 55		
 			// FeeCo Entry
 				if (current.PATH_ID == 1 && current.CAM_ID == 3 && vars.splits[51] != true) {
@@ -867,7 +876,8 @@ split
 					vars.splitsFeeCoAgain = vars.splits[4];
 					vars.SplitFeeco2 = true;
 				}
-				vars.LOG_LastSplit = "Bonewerkz. Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ".";
+				vars.LOG_LastSplit = "Bonewerkz. " + vars.LOG_CurrentTime;
+				vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ".";
 				return true;
 			}
 		}
