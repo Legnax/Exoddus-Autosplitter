@@ -20,7 +20,7 @@ state("Exoddus", "ES") // SPANISH OFFSETS (390 values away) (Uncheck the GoG che
 	short abeY : 0x1C1EF8, 0xBE; // FMV_ID + 14DA
 }
 
-state("Exoddus", "FR")// FRENCH OFFSETS 
+state("Exoddus", "FR") // FRENCH OFFSETS 
 {	
 	byte LEVEL_ID : 0x1C3912; // 1C3908
 	byte PATH_ID : 0x1C3914; // 1C390A
@@ -30,7 +30,7 @@ state("Exoddus", "FR")// FRENCH OFFSETS
 }
 
 
-state("Exoddus", "FRs")// FRENCH Steam OFFSETS 
+state("Exoddus", "FRs") // FRENCH Steam OFFSETS 
 {	
 	byte LEVEL_ID : 0x1C3908; // 1C3908
 	byte PATH_ID : 0x1C390A; // 1C390A
@@ -39,7 +39,7 @@ state("Exoddus", "FRs")// FRENCH Steam OFFSETS
 	short abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
 }
 
-state("Exoddus", "DE")// DEUTSCH OFFSETS 
+state("Exoddus", "DE") // DEUTSCH OFFSETS 
 {	
 	byte LEVEL_ID : 0x1C3A08;
 	byte PATH_ID : 0x1C3A0A;
@@ -48,9 +48,28 @@ state("Exoddus", "DE")// DEUTSCH OFFSETS
 	short abeY : 0x1C2540, 0xBE; // FMV_ID + 14DA
 }
 
+state("Exoddus", "IT") // ITALIAN OFFSETS 
+{	
+	byte LEVEL_ID : 0x1C377A;
+	byte PATH_ID : 0x1C377C;
+	byte CAM_ID : 0x1C377E;
+	byte FMV_ID : 0x1C3782;
+	short abeY : 0x1C22A8, 0xBE; // FMV_ID + 14DA
+	long gnFrame : 0x1C3764; // Frame rate (unused for now!)
+}
+
 startup
 {
-	settings.Add("version", true, "Version 1.3. By LegnaX. https://github.com/Legnax/Exoddus-Autosplitter");
+	settings.Add("version", true, "Version 1.4. By LegnaX. https://github.com/Legnax/Exoddus-Autosplitter");
+	
+	settings.Add("10Rate", true, "10 refreshes per second (DEFAULT)");
+	settings.SetToolTip("10Rate", "Sets the autosplitter to refresh 10 times per second.\nShould help preventing freezes or malfunctions.\n Some splits may cause fake golds or inaccurate times!");
+	
+	settings.Add("30Rate", false, "30 refreshes per second");
+	settings.SetToolTip("30Rate", "Sets the autosplitter to refresh 30 times per second.\nShould help getting very accurate times.\nIf the autosplit freezes or doesn't split, select 10 instead.");
+	
+	settings.Add("50Rate", false, "50 refreshes per second");
+	settings.SetToolTip("50Rate", "Sets the autosplitter to refresh 50 times per second.\nSplits will be even more precise!\nMay freeze. If it does, try less splits, or reduce refresh rate.");
 	
 	settings.Add("Spanish", false, "Check ONLY if you are using Spanish game.");
 	settings.SetToolTip("Spanish", "For some odd reason, the ModuleMemorySize of the English version and the Spanish version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
@@ -60,6 +79,9 @@ startup
 	
 	settings.Add("FrenchSteam", false, "Check ONLY if you are using French STEAM game.");
 	settings.SetToolTip("FrenchSteam", "For some odd reason, the ModuleMemorySize of the French steam version and the German steam version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
+	
+	settings.Add("ItalianSteam", false, "Check ONLY if you are using Italian STEAM game.");
+	settings.SetToolTip("ItalianSteam", "For some odd reason, the ModuleMemorySize of the Italian steam version and the Spanish steam version is the same, while it's offsets are different, making the autosplit have a bad time for identifying the version of the game on this case.");
 	
 	settings.Add("minesSplit", true, "Mines - Splits when Abe leaves Mines Boiler.");
 	settings.Add("minesExtended", false, "One split each Tunnel (put mouse here for more info).", "minesSplit");
@@ -135,11 +157,24 @@ init
 			version = "DE" ;			
 		}
 	} else if (modules.First().ModuleMemorySize == 9138176){ // That module is for spanish. 
-		version = "ES" ;
+		if (settings["ItalianSteam"]){
+			version = "IT";			
+		} else {
+			version = "ES" ;		
+		}
 	} else { // Any different module (like GoG or unknown lang) will be loaded here. You need this for English or German.
 		version = "EN" ;
 	}	
-	refreshRate = 15;	// Refresh rate of the script (per second).
+	
+	// Refresh rate
+	if (settings["50Rate"]){
+		refreshRate = 50;
+	} else if (settings["30Rate"]){
+		refreshRate = 30;
+	} else {
+		refreshRate = 10;	
+	}
+	
 	vars.LOG_LastSplit = "No split yet. Game version: " + version;
 	vars.LOG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.LOG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
@@ -162,14 +197,15 @@ init
 } 
 
 start
-{
-	refreshRate = 15;	
-	// if (!settings["GoG"] && version.Contains("EN")) { // We switch to spanish
-		// version = "ES";
-	// }	
-	// if (settings["GoG"] && version.Contains("ES")) { // We switch to english
-		// version = "EN";
-	// }
+{	
+	// Refresh rate
+	if (settings["50Rate"]){
+		refreshRate = 50;
+	} else if (settings["30Rate"]){
+		refreshRate = 30;
+	} else {
+		refreshRate = 10;	
+	}
 	
 	if (current.PATH_ID == 0) { // Wrong values, we switch ModuleMemory.
 		if (modules.First().ModuleMemorySize == 8785920){ 
@@ -288,8 +324,8 @@ split
 			// MINES SPLIT
 				if (current.FMV_ID == 232 && vars.splits[0] != true) {
 					vars.splits[0] = true;
-						vars.LOG_LastSplit = "Mines, last split. " + vars.LOG_CurrentTime;
-						vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
+					vars.LOG_LastSplit = "Mines, last split. " + vars.LOG_CurrentTime;
+					vars.LOG_LocationLastSplit = "Level = " + current.LEVEL_ID + ". Path = " + current.PATH_ID + ". Cam = " + current.CAM_ID + ". FMV = " + current.FMV_ID + ". abeY = " + current.abeY + ".";
 					return true;
 				}
 			}
