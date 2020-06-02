@@ -1,6 +1,6 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 27 May 2020.
+//  Created by LegnaX. 02 June 2020.
 
 state("Exoddus", "Any") // EVERY LANGUAGE!!
 {	
@@ -25,14 +25,14 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 	byte ES_IsPaused : 0x1C9694; // 0 = Unpaused. 1 = Paused. 
 	
 	
-	// FRENCH
-	byte FR_LEVEL_ID : 0x1C3912; // 1C3908
-	byte FR_PATH_ID : 0x1C3914; // 1C390A
-	byte FR_CAM_ID : 0x1C3916; // 1C390C
-	byte FR_FMV_ID : 0x1C391A; // 1C3910
-	short FR_abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
-	int FR_gnFrame : 0x1C2466; // NOT TESTED YET!!
-	byte FR_IsPaused : 0x1C9BE6; // NOT TESTED YET!! | 0 = Unpaused. 1 = Paused. 
+	// FRENCH (Updated by Askew, 2 June 2020)
+    byte FR_LEVEL_ID : 0x1C3908; // 1C3908
+    byte FR_PATH_ID : 0x1C3914; // 1C390A
+    byte FR_CAM_ID : 0x1C3916; // 1C390C
+    byte FR_FMV_ID : 0x1C3910; // 1C3910
+    short FR_abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
+    int FR_gnFrame : 0x1C245C;
+    byte FR_IsPaused : 0x1C9BDC; // NOT TESTED YET!! | 0 = Unpaused. 1 = Paused.
 
 
 	// FRENCH STEAM!!	
@@ -67,7 +67,7 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("version", true, "Version 1.5. By LegnaX. LOADLESS. 27 May 2020.");
+	settings.Add("version", true, "Version 1.6. By LegnaX. LOADLESS. 02 June 2020.");
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout!! IMPORTANT!");
 	
