@@ -1,10 +1,10 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 02 June 2020.
+//  Created by LegnaX. 03 June 2020.
 
 state("Exoddus", "Any") // EVERY LANGUAGE!!
 {	
-	// ENGLISH!!
+	// ENGLISH!
 	byte EN_LEVEL_ID : 0x1C3030;
 	byte EN_PATH_ID : 0x1C3032;
 	byte EN_CAM_ID : 0x1C3034;
@@ -15,7 +15,7 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 	byte EN_IsPaused : 0x1C9304; // 0 = Unpaused. 1 = Paused. 
 
 
-	// SPANISH!!
+	// SPANISH!
 	byte ES_LEVEL_ID : 0x1C33C0;
 	byte ES_PATH_ID : 0x1C33C2;
 	byte ES_CAM_ID : 0x1C33C4;
@@ -26,13 +26,13 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 	
 	
 	// FRENCH (Updated by Askew, 2 June 2020)
-    byte FR_LEVEL_ID : 0x1C3908; // 1C3908
-    byte FR_PATH_ID : 0x1C3914; // 1C390A
-    byte FR_CAM_ID : 0x1C3916; // 1C390C
-    byte FR_FMV_ID : 0x1C3910; // 1C3910
-    short FR_abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
-    int FR_gnFrame : 0x1C245C;
-    byte FR_IsPaused : 0x1C9BDC; // NOT TESTED YET!! | 0 = Unpaused. 1 = Paused.
+	byte FR_LEVEL_ID : 0x1C3908; // 1C3908
+	byte FR_PATH_ID : 0x1C3914; // 1C390A
+	byte FR_CAM_ID : 0x1C3916; // 1C390C
+	byte FR_FMV_ID : 0x1C3910; // 1C3910
+	short FR_abeY : 0x1C2440, 0xBE; // 1C4DEA 14DA
+	int FR_gnFrame : 0x1C245C;
+	byte FR_IsPaused : 0x1C9BDC; // NOT TESTED YET!! | 0 = Unpaused. 1 = Paused.
 
 
 	// FRENCH STEAM!!	
@@ -67,7 +67,7 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("version", true, "Version 1.6. By LegnaX. LOADLESS. 02 June 2020.");
+	settings.Add("version", true, "Version 1.5. By LegnaX. LOADLESS. 27 May 2020.");
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout!! IMPORTANT!");
 	
@@ -614,7 +614,7 @@ split
 					}
 				
 				// Mudomo split
-					if (vars.countToMud >= 90 && ((c_LEVEL_ID == 4 && c_PATH_ID == 6 && c_CAM_ID == 23 && c_FMV_ID == 34 && vars.preSplitMudomo) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[2] != true) { 
+					if (vars.countToMud >= 1000 && ((c_LEVEL_ID == 4 && c_PATH_ID == 6 && c_CAM_ID == 23 && c_FMV_ID == 34 && vars.preSplitMudomo) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[2] != true) { 
 						vars.splits[2] = true;
 						vars.LOG_LastSplit = "Mudomo. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
@@ -721,7 +721,7 @@ split
 						vars.preSplitMudanchee = true;
 					}
 					
-					if (vars.countToMud >= 90 && ((c_LEVEL_ID == 3 && c_PATH_ID == 1 && c_CAM_ID == 1 && c_FMV_ID == 25 && vars.preSplitMudanchee) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[3] != true) { // Mudanchee Split: we are in Mudomo or Wheel to FeeCo. 
+					if (vars.countToMud >= 1000 && ((c_LEVEL_ID == 3 && c_PATH_ID == 1 && c_CAM_ID == 1 && c_FMV_ID == 25 && vars.preSplitMudanchee) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[3] != true) { // Mudanchee Split: we are in Mudomo or Wheel to FeeCo. 
 						vars.splits[3] = true;
 						vars.LOG_LastSplit = "Mudanchee. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
@@ -1384,7 +1384,7 @@ split
 		vars.ResetStatus = 2;
 	}
 	
-	if (vars.countToMud > 0 && vars.countToMud <= 99){
+	if (vars.countToMud > 0 && vars.countToMud <= 999){
 		vars.countToMud = vars.countToMud + 1;
 	} 
 }
