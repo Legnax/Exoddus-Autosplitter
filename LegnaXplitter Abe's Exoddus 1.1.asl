@@ -1,10 +1,10 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 03 June 2020.
+//  Created by LegnaX. 05 June 2020.
 
 state("Exoddus", "Any") // EVERY LANGUAGE!!
 {	
-	// ENGLISH!
+	// ENGLISH!!
 	byte EN_LEVEL_ID : 0x1C3030;
 	byte EN_PATH_ID : 0x1C3032;
 	byte EN_CAM_ID : 0x1C3034;
@@ -15,7 +15,7 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 	byte EN_IsPaused : 0x1C9304; // 0 = Unpaused. 1 = Paused. 
 
 
-	// SPANISH!
+	// SPANISH!!
 	byte ES_LEVEL_ID : 0x1C33C0;
 	byte ES_PATH_ID : 0x1C33C2;
 	byte ES_CAM_ID : 0x1C33C4;
@@ -67,7 +67,7 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("version", true, "Version 1.5. By LegnaX. LOADLESS. 27 May 2020.");
+	settings.Add("version", true, "Version 1.6. By LegnaX. LOADLESS. 05 June 2020.");
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout!! IMPORTANT!");
 	
@@ -973,17 +973,18 @@ split
 							vars.LOG_LastSplit = "Block 4. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
-						}			
+						}	
+
+					// Dripik
+						if (c_LEVEL_ID == 13 && o_PATH_ID == 11 && c_PATH_ID == 16 && vars.splits[61] != true) {
+							vars.splits[61] = true;
+							vars.LOG_LastSplit = "Dripik. " + vars.LOG_CurrentTime;
+							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
+							return true;
+						}						
 					}
 					
 					
-				// Dripik
-					if (c_LEVEL_ID == 13 && o_PATH_ID == 11 && c_PATH_ID == 16 && vars.splits[61] != true) {
-						vars.splits[61] = true;
-						vars.LOG_LastSplit = "Dripik. " + vars.LOG_CurrentTime;
-						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
-						return true;
-					}
 					
 				// Slig Barracks Split
 					if (o_LEVEL_ID == 13 && c_LEVEL_ID == 5 && vars.splits[5] != true) { 
