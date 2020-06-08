@@ -75,7 +75,7 @@ startup
 	settings.SetToolTip("nag", "Sets the autosplitter to refresh 30 times per second. Leaving all options unckeched will set refresh rate to 30 by default anyway.");
 	
 	settings.Add("10Rate", false, "10 refreshes per second (potato mode ACTIVATED)", "nag");
-	settings.SetToolTip("30Rate", "Sets the autosplitter to refresh 10 times per second. Perfect for potato computers. Inaccurate times may happen. Suggested by mouzedrift.");
+	settings.SetToolTip("10Rate", "Sets the autosplitter to refresh 10 times per second. Perfect for potato computers. Inaccurate times may happen. Suggested by mouzedrift.");
 	
 	settings.Add("30Rate", true, "30 refreshes per second (DEFAULT)", "nag");
 	settings.SetToolTip("30Rate", "Sets the autosplitter to refresh 30 times per second. Leaving all options unckeched will set refresh rate to 30 by default anyway.");
