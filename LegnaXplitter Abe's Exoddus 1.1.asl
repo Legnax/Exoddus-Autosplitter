@@ -1,6 +1,6 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 08 June 2020.
+//  Created by LegnaX. 09 June 2020.
 
 state("Exoddus", "Any") // EVERY LANGUAGE!!
 {	
@@ -67,12 +67,15 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("version", true, "Version 1.6. By LegnaX. LOADLESS. 08 June 2020.");
+	settings.Add("version", true, "Version 1.6. By LegnaX. LOADLESS. 09 June 2020.");
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout!! IMPORTANT!");
 	
 	settings.Add("nag", true, "REFRESH RATE OF THE AUTOSPLITTER");
 	settings.SetToolTip("nag", "Sets the autosplitter to refresh 30 times per second. Leaving all options unckeched will set refresh rate to 30 by default anyway.");
+	
+	settings.Add("10Rate", false, "10 refreshes per second (potato mode ACTIVATED)", "nag");
+	settings.SetToolTip("30Rate", "Sets the autosplitter to refresh 10 times per second. Perfect for potato computers. Inaccurate times may happen. Suggested by mouzedrift.");
 	
 	settings.Add("30Rate", true, "30 refreshes per second (DEFAULT)", "nag");
 	settings.SetToolTip("30Rate", "Sets the autosplitter to refresh 30 times per second. Leaving all options unckeched will set refresh rate to 30 by default anyway.");
@@ -186,6 +189,8 @@ start
 		refreshRate = 50;
 	} else if (settings["40Rate"]){
 		refreshRate = 40;
+	} else if (settings["10Rate"]){
+		refreshRate = 10;
 	} else {
 		refreshRate = 30;	
 	}
@@ -260,6 +265,8 @@ isLoading
 		refreshRate = 50;
 	} else if (settings["40Rate"]){
 		refreshRate = 40;
+	} else if (settings["10Rate"]){
+		refreshRate = 10;
 	} else {
 		refreshRate = 30;	
 	}
