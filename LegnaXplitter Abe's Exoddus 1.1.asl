@@ -1,8 +1,8 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 09 June 2020.
+//  Created by LegnaX. 04 July 2020.
 
-state("Exoddus", "Any") // EVERY LANGUAGE!!
+state("Exoddus", "1.7.0") // EVERY LANGUAGE!!
 {	
 	// ENGLISH!!
 	byte EN_LEVEL_ID : 0x1C3030;
@@ -13,6 +13,7 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 	int EN_gnFrame : 0x1C1B84; // Between Level and gnFrame = 14AC
 	// byte IsPaused : 0x1C9300, 0x12C; // WILL HAVE PROBLEMS!
 	byte EN_IsPaused : 0x1C9304; // 0 = Unpaused. 1 = Paused. 
+	int EN_FMVframe : 0x7D2A40, 0x004, 0x15C;
 
 
 	// SPANISH!!
@@ -67,9 +68,11 @@ state("Exoddus", "Any") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("version", true, "Version 1.6. By LegnaX. LOADLESS. 09 June 2020.");
+	settings.Add("Version", true, "Official Version 1.7.0 (July 4nd 2020) - LegnaX#7777 - CHANGELOG");
+	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.");
+	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
-	settings.Add("version3", true, "Add additional Real Time timer on layout!! IMPORTANT!");
+	settings.Add("version3", true, "Add additional Real Time timer on layout.");
 	
 	settings.Add("nag", true, "REFRESH RATE OF THE AUTOSPLITTER");
 	settings.SetToolTip("nag", "Sets the autosplitter to refresh 30 times per second. Leaving all options unckeched will set refresh rate to 30 by default anyway.");
@@ -88,8 +91,14 @@ startup
 	
 	settings.Add("100Rate", false, "100 refreshes per second", "nag");
 	settings.SetToolTip("100Rate", "Sets the autosplitter to refresh 100 times per second. R U crazy or wut m8?");	
-		
-	settings.Add("SPLITSinfo", true, "AUTOSPLITS. Uncheck this for just Loadess Feature.");
+	
+	settings.Add("UsingIL", false, "INDIVIDUAL LEVELS - Check this to activate");
+	settings.SetToolTip("UsingIL", "Leave this option unchecked to not use.\nAutosplit will priorize autosplit category over Individual Levels, so make sure you disable AUTOSPLIT GAME CATEGORY if you want to use ILs!\nYou need the splits file for the IL splits to work correctly. \nExcept for Mines, you need to use the prepared Save Files in order for the autosplit to start.\nDOWNLOAD THEM AT http://tiny.cc/Splits2 !\n-> INDIVIDUAL LEVEL LIST <-\n- Mines (start a new game)\n- Necrum (3 save files)\n- Mudomo\n- Mudanchee\n- FeeCo (3 save files)\n- Bonewerkz\n- Slig Barracks\n- Hub 1\n- Hub 2\n- Hub 3\n- Soulstorm Boiler");
+	
+	
+	settings.Add("JustLines", true, "------------------------------------------------------");
+	
+	settings.Add("SPLITSinfo", true, "AUTOSPLITS. Uncheck this for just Loadess Feature.");		
 	
 	settings.Add("minesSplit", true, "Mines - Splits when Abe leaves Mines Boiler.");
 	settings.Add("minesExtended", false, "One split each Tunnel (put mouse here for more info).", "minesSplit");
@@ -146,7 +155,7 @@ startup
 
 init
 {	
-	version = "Any";
+	version = "1.7.0";
 	
 	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
 	vars.REAL_TIME = "Real time will be displayed here";
@@ -160,12 +169,16 @@ init
 	vars.preSplitNecrum = false;
 	vars.preSplitMudomo = false;
 	vars.preSplitMudanchee = false;
+	
 	vars.ResetStatus = 0;
 	vars.SplitFeeco2 = false;
 	vars.ResetAllowed = true;
 	vars.countToMud = 0; // We avoid doble split on Mudomo / Mudanchee splits.
 	vars.FMVNecrum = 0;
 	vars.PrePhlegSplit = false; // This variable checks if Phleg made it to the Glukkon intercom at least once. Prevents a wrong split if the player dies at Phleg on the last tier of Slogs.
+	vars.ILWaitTimer = false; // True = the timer will not advance, not even on pause menu (obv).
+	vars.ILWaitFrame = -1;
+	vars.ILid = -1;
 	vars.fps = 30.3; // FPS of the game.
 	
 	// 0 - 13 main splits. 14 - 21 Mines. 22 - 29 Necrum. 30 - 39 Mudomo. 40 - 50 Mudanchee. 51 - 55 FeeCo. 56 - 62 Barracks. 63 - 72 Bonewerkz.
@@ -182,6 +195,9 @@ init
 
 start
 {	
+	bool areWeStartingOrNot = false;
+	vars.ILid = -1; // Restarting IL id
+	vars.ILWaitTimer = false;
 	// Refresh rate
 	if (settings["100Rate"]){
 		refreshRate = 100;
@@ -194,42 +210,600 @@ start
 	} else {
 		refreshRate = 30;	
 	}
-		
-	if (old.EN_LEVEL_ID == 0 && old.EN_CAM_ID == 13 && current.EN_LEVEL_ID == 1 && current.EN_CAM_ID == 4){
+	
+	
+	// MINES (used for main splits OR ILs)
+	int ol = 0;
+	int	op = 0; // OLD PATH
+	int oc = 13;
+	int cl = 1;
+	int	cp = 0; // CURRENT PATH
+	int cc = 4;
+	if (old.EN_LEVEL_ID == ol && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_CAM_ID == cc){
 		vars.StartgnFrame = current.EN_gnFrame;
 		vars.LangDetected = "English";
-		return true;
+		areWeStartingOrNot = true;
 	}
 	
-	if (old.ES_LEVEL_ID == 0 && old.ES_CAM_ID == 13 && current.ES_LEVEL_ID == 1 && current.ES_CAM_ID == 4){
+	if (old.ES_LEVEL_ID == ol && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_CAM_ID == cc){
 		vars.StartgnFrame = current.ES_gnFrame;
 		vars.LangDetected = "Spanish";
-		return true;
+		areWeStartingOrNot = true;
 	}
 	
-	if (old.FR_LEVEL_ID == 0 && old.FR_CAM_ID == 13 && current.FR_LEVEL_ID == 1 && current.FR_CAM_ID == 4){
+	if (old.FR_LEVEL_ID == ol && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_CAM_ID == cc){
 		vars.StartgnFrame = current.FR_gnFrame;
 		vars.LangDetected = "French";
-		return true;
+		areWeStartingOrNot = true;
 	}
 	
-	if (old.FRs_LEVEL_ID == 0 && old.FRs_CAM_ID == 13 && current.FRs_LEVEL_ID == 1 && current.FRs_CAM_ID == 4){
+	if (old.FRs_LEVEL_ID == ol && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_CAM_ID == cc){
 		vars.StartgnFrame = current.FRs_gnFrame;
 		vars.LangDetected = "French Steam";
-		return true;
+		areWeStartingOrNot = true;
 	}
 	
-	if (old.DE_LEVEL_ID == 0 && old.DE_CAM_ID == 13 && current.DE_LEVEL_ID == 1 && current.DE_CAM_ID == 4){
+	if (old.DE_LEVEL_ID == ol && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_CAM_ID == cc){
 		vars.StartgnFrame = current.DE_gnFrame;
 		vars.LangDetected = "German";
-		return true;
+		areWeStartingOrNot = true;
 	}
 	
-	if (old.IT_LEVEL_ID == 0 && old.IT_CAM_ID == 13 && current.IT_LEVEL_ID == 1 && current.IT_CAM_ID == 4){
+	if (old.IT_LEVEL_ID == ol && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_CAM_ID == cc){
 		vars.StartgnFrame = current.IT_gnFrame;
 		vars.LangDetected = "Italian";
+		areWeStartingOrNot = true;
+	}
+	
+	if (areWeStartingOrNot && settings["UsingIL"]){
+		vars.ILid = 0; // Mines IL
+	}
+
+	// --------------------------------------------------------------------------------------------------------------------
+	
+	if (settings["UsingIL"]){
+		
+	// NECRUM (used for ILs)
+		ol = 1; // OLD LEVEL
+		op = 6; // OLD PATH
+		oc = 7; // OLD CAMERA
+		// cl = 2; // CURRENT LEVEL
+		// cp = 2; // CURRENT PATH
+		// cc = 1; // CURRENT CAMERA
+		int of = 0;
+		int cf = 232;
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && old.EN_FMV_ID == of && current.EN_FMV_ID == cf){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 1; // Necrum IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && old.ES_FMV_ID == of && current.ES_FMV_ID == cf){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 1; // Necrum IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && old.FR_FMV_ID == of && current.FR_FMV_ID == cf){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 1; // Necrum IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && old.FRs_FMV_ID == of && current.FRs_FMV_ID == cf){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 1; // Necrum IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && old.DE_FMV_ID == of && current.DE_FMV_ID == cf){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 1; // Necrum IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && old.IT_FMV_ID == of && current.IT_FMV_ID == cf){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 1; // Necrum IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// MUDOMO (used for ILs)
+		ol = 2; // OLD LEVEL
+		op = 5; // OLD PATH
+		oc = 9; // OLD CAMERA
+		cl = 3; // CURRENT LEVEL
+		cp = 1; // CURRENT PATH
+		cc = 1; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 2; // Mudomo IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 2; // Mudomo IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 2; // Mudomo IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 2; // Mudomo IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 2; // Mudomo IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 2; // Mudomo IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// MUDANCHEE (used for ILs)
+		ol = 2; // OLD LEVEL
+		op = 5; // OLD PATH
+		oc = 1; // OLD CAMERA
+		cl = 4; // CURRENT LEVEL
+		cp = 6; // CURRENT PATH
+		cc = 23; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 3; // Mudanchee IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 3; // Mudanchee IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 3; // Mudanchee IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 3; // Mudanchee IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 3; // Mudanchee IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 3; // Mudanchee IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// FEECO (used for ILs)
+		ol = 2; // OLD LEVEL
+		op = 3; // OLD PATH
+		oc = 18; // OLD CAMERA
+		cl = 5; // CURRENT LEVEL
+		cp = 1; // CURRENT PATH
+		cc = 1; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 4; // FeeCo IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 4; // FeeCo IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 4; // FeeCo IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 4; // FeeCo IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 4; // FeeCo IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 4; // FeeCo IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// BONEWERKZ (used for ILs)
+		ol = 5; // OLD LEVEL
+		op = 4; // OLD PATH
+		oc = 14; // OLD CAMERA
+		cl = 8; // CURRENT LEVEL
+		cp = 1; // CURRENT PATH
+		cc = 18; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 5; // Bonewerkz IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 5; // Bonewerkz IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 5; // Bonewerkz IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 5; // Bonewerkz IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 5; // Bonewerkz IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 5; // Bonewerkz IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// SLIG BARRACKS (used for ILs)
+		ol = 5; // OLD LEVEL
+		op = 3; // OLD PATH
+		oc = 14; // OLD CAMERA
+		cl = 6; // CURRENT LEVEL
+		cp = 1; // CURRENT PATH
+		cc = 3; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 6; // Slig Barracks IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 6; // Slig Barracks IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 6; // Slig Barracks IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 6; // Slig Barracks IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 6; // Slig Barracks IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 6; // Slig Barracks IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// HUB 1 (used for ILs)
+		ol = 5; // OLD LEVEL
+		op = 5; // OLD PATH
+		oc = 14; // OLD CAMERA
+		cl = 9; // CURRENT LEVEL
+		cp = 16; // CURRENT PATH
+		cc = 1; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 7; // Hub 1 IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 7; // Hub 1 IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 7; // Hub 1 IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 7; // Hub 1 IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 7; // Hub 1 IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 7; // Hub 1 IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// HUB 2 (used for ILs)
+		ol = 9; // OLD LEVEL
+		op = 23; // OLD PATH
+		oc = 1; // OLD CAMERA
+		cl = 9; // CURRENT LEVEL
+		cp = 24; // CURRENT PATH
+		cc = 1; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 8; // Hub 2 IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 8; // Hub 2 IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 8; // Hub 2 IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 8; // Hub 2 IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 8; // Hub 2 IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 8; // Hub 2 IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// HUB 3 (used for ILs)
+		ol = 9; // OLD LEVEL
+		op = 24; // OLD PATH
+		oc = 1; // OLD CAMERA
+		cl = 9; // CURRENT LEVEL
+		cp = 25; // CURRENT PATH
+		cc = 1; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 9; // Hub 3 IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 9; // Hub 3 IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 9; // Hub 3 IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 9; // Hub 3 IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 9; // Hub 3 IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 9; // Hub 3 IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+		
+		
+		
+		// SOULSTORM BOILER (used for ILs)
+		ol = 9; // OLD LEVEL
+		op = 25; // OLD PATH
+		oc = 1; // OLD CAMERA
+		cl = 10; // CURRENT LEVEL
+		cp = 1; // CURRENT PATH
+		cc = 1; // CURRENT CAMERA
+		if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == cl && current.EN_PATH_ID == cp && current.EN_CAM_ID == cc){
+			vars.StartgnFrame = current.EN_gnFrame;
+			vars.LangDetected = "English";
+			areWeStartingOrNot = true;
+			vars.ILid = 10; // Soulstorm Boiler IL
+		}
+		
+		if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == cl && current.ES_PATH_ID == cp && current.ES_CAM_ID == cc){
+			vars.StartgnFrame = current.ES_gnFrame;
+			vars.LangDetected = "Spanish";
+			areWeStartingOrNot = true;
+			vars.ILid = 10; // Soulstorm Boiler IL
+		}
+		
+		if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == cl && current.FR_PATH_ID == cp && current.FR_CAM_ID == cc){
+			vars.StartgnFrame = current.FR_gnFrame;
+			vars.LangDetected = "French";
+			areWeStartingOrNot = true;
+			vars.ILid = 10; // Soulstorm Boiler IL
+		}
+		
+		if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == cl && current.FRs_PATH_ID == cp && current.FRs_CAM_ID == cc){
+			vars.StartgnFrame = current.FRs_gnFrame;
+			vars.LangDetected = "French Steam";
+			areWeStartingOrNot = true;
+			vars.ILid = 10; // Soulstorm Boiler IL
+		}
+		
+		if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == cl && current.DE_PATH_ID == cp && current.DE_CAM_ID == cc){
+			vars.StartgnFrame = current.DE_gnFrame;
+			vars.LangDetected = "German";
+			areWeStartingOrNot = true;
+			vars.ILid = 10; // Soulstorm Boiler IL
+		}
+		
+		if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == cl && current.IT_PATH_ID == cp && current.IT_CAM_ID == cc){
+			vars.StartgnFrame = current.IT_gnFrame;
+			vars.LangDetected = "Italian";
+			areWeStartingOrNot = true;
+			vars.ILid = 10; // Soulstorm Boiler IL
+		}
+
+		// --------------------------------------------------------------------------------------------------------------------
+	}
+	
+	
+	if (areWeStartingOrNot){
+		vars.ResetStatus = 0;		
+		vars.Epoch = 0;
+		vars.PauseStartTime = -1;	
+		vars.MillisecondsPaused = 0;
+		vars.AccumulatedPenaltyTime = 0;	
+		areWeStartingOrNot = false;	
 		return true;
-	}		
+	}
 }
 
 exit
@@ -245,7 +819,10 @@ reset
 		vars.PauseStartTime = -1;	
 		vars.MillisecondsPaused = 0;
 		vars.AccumulatedPenaltyTime = 0;
-		// vars.LangDetected = "Nothing yet";
+		vars.LOADLESS_TIME = "00:00.000";
+		vars.REAL_TIME = "00:00.000";		
+		vars.ILid = -1; // Restarting IL id
+		vars.ILWaitTimer = false;
 		return true;		
 	} else {
 		return false;
@@ -304,53 +881,67 @@ isLoading
 			IsPaused = current.EN_IsPaused;
 		}
 		
-		if (o_gnFrame > c_gnFrame){ // If we QuikLoaded, died or Restart Path...
-			vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((o_gnFrame - vars.StartgnFrame) * 1000 / vars.fps);
-			vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
-			vars.StartgnFrame = c_gnFrame - 1;
-		}
-		
-		if (o_gnFrame + 100 < c_gnFrame) { // If we used the skip level code, we will fix the frames.
-			vars.StartgnFrame = vars.StartgnFrame + (c_gnFrame - o_gnFrame);
-		}
-		
-		if (IsPaused == 1){ // if the game is paused...
-			vars.Epoch = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000;
-			if (vars.PauseStartTime == -1){ // Paused for the first time.
-				vars.PauseStartTime = vars.Epoch;
-			}		
+		if (vars.ILWaitTimer){
+			if (vars.ILWaitFrame == -1){
+				vars.ILWaitFrame = c_gnFrame;
+			}
+			return true;
+		} else {
+			if (o_gnFrame > c_gnFrame){ // If we QuikLoaded, died or Restart Path...
+				vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((o_gnFrame - vars.StartgnFrame) * 1000 / vars.fps);
+				vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
+				vars.StartgnFrame = c_gnFrame - 1;
+			}
 			
-		} else {				
-			if (vars.PauseStartTime > 0){ // Unpaused for the first time.
-				vars.MillisecondsPaused = vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime);
-				vars.PauseStartTime = -1;
-			}			
-		}
-		
-		vars.CurrentFrames = c_gnFrame - vars.StartgnFrame;
-		
-		if (c_gnFrame > 0) {
-			if (IsPaused == 1){ // if the game is paused...
-				vars.REAL_TIME = System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "").Replace("00:", "");
-				vars.LOADLESS_TIME = TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
-				vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
-				if ((TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
-					return true;
+			if (vars.ILWaitFrame > -1){
+				vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((vars.ILWaitFrame - vars.StartgnFrame) * 1000 / vars.fps);
+				vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
+				vars.StartgnFrame = c_gnFrame - 1;	
+				vars.ILWaitFrame = -1;				
+			}
+			
+			if (o_gnFrame + 60 < c_gnFrame) { // If we used the skip level code, we will fix the frames.
+				vars.StartgnFrame = vars.StartgnFrame + (c_gnFrame - o_gnFrame);
+			}
+			
+			if (IsPaused == 1 && vars.ILWaitTimer == false){ // if the game is paused...
+				vars.Epoch = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000;
+				if (vars.PauseStartTime == -1){ // Paused for the first time.
+					vars.PauseStartTime = vars.Epoch;
+				}		
+				
+			} else {				
+				if (vars.PauseStartTime > 0){ // Unpaused for the first time.
+					vars.MillisecondsPaused = vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime);
+					vars.PauseStartTime = -1;
+				}			
+			}
+			
+			vars.CurrentFrames = c_gnFrame - vars.StartgnFrame;
+			
+			 if (c_gnFrame > 0) {
+				if (IsPaused == 1){ // if the game is paused...
+					vars.REAL_TIME = System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "").Replace("00:", "");
+					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
+					vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
+					if ((TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
+						return true;
+					} else {
+						return false;
+					}
 				} else {
-					return false;
+					vars.REAL_TIME = System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "").Replace("00:", "");
+					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
+					vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
+					if ((TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
+						return true;
+					} else {
+						return false;
+					}
 				}
 			} else {
-				vars.REAL_TIME = System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "").Replace("00:", "");
-				vars.LOADLESS_TIME = TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
-				vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
-				if ((TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
-					return true;
-				} else {
-					return false;
-				}
+				return true; // :shrug: 
 			}
-		} else {
-			return true; // :shrug: 
 		}
 	}
 	
@@ -384,7 +975,7 @@ split
 	
 		if (vars.LangDetected == "Nothing yet"){
 			
-		} else if (settings["SPLITSinfo"]){
+		} else if (settings["SPLITSinfo"] || vars.ILid >= 0){
 			// We set the values to the detected language :)
 			if (vars.LangDetected == "English"){
 				o_LEVEL_ID = old.EN_LEVEL_ID;
@@ -450,14 +1041,15 @@ split
 			
 							
 			// Mines (LEVEL_ID 1)
-				if (settings["minesSplit"]) {		
+				if (settings["minesSplit"] || vars.ILid == 0) {		
 					if (c_LEVEL_ID == 1) { // If we are in Mines...		
-						if (settings["minesExtended"]){ // 14 - 21
+						if (settings["minesExtended"] || vars.ILid == 0){ // 14 - 21
 						// Tunnel 1 SPLIT
 							if (c_FMV_ID == 71 && vars.splits[14] != true) {
 								vars.splits[14] = true;
 								vars.LOG_LastSplit = "Tunnel 1. " + vars.LOG_CurrentTime;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
+								vars.ILWaitTimer = true;
 								return true;
 							}
 							
@@ -466,6 +1058,7 @@ split
 								vars.splits[15] = true;
 								vars.LOG_LastSplit = "Tunnel 2. " + vars.LOG_CurrentTime;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
+								vars.ILWaitTimer = false;
 								return true;
 							}
 							
@@ -530,8 +1123,8 @@ split
 			//////////////////////////////
 
 			// Mudomo (LEVEL_ID 3, Vaults is LEVEL_ID 11)
-				if (settings["mudomoSplit"]){
-					if (c_LEVEL_ID == 3 && settings["mudomoExtended"]){ // 30 - 39
+				if (settings["mudomoSplit"] || vars.ILid == 2){
+					if (c_LEVEL_ID == 3 && (settings["mudomoExtended"] || vars.ILid == 2)){ // 30 - 39
 					
 					// Mudomo Entry 1
 						if (c_FMV_ID == 29 && vars.splits[30] != true) {
@@ -631,8 +1224,8 @@ split
 			//////////////////////////////
 
 			// Mudanchee (LEVEL_ID 4)
-				if (settings["mudancheeSplit"]){
-					if (settings["mudancheeExtended"]){ // 40 - 50
+				if (settings["mudancheeSplit"] || vars.ILid == 3){
+					if (settings["mudancheeExtended"] || vars.ILid == 3){ // 40 - 50
 						if (c_LEVEL_ID == 4){
 						// Mudanchee Entry 1
 							if (c_FMV_ID == 25 && vars.splits[40] != true) {
@@ -738,9 +1331,9 @@ split
 			//////////////////////////////
 				
 			// Necrum (LEVEL_ID 2)
-				if (settings["necrumSplit"]) {
+				if (settings["necrumSplit"] || vars.ILid == 1) {
 					if (c_LEVEL_ID == 2){
-						if (settings["necrumExtended"]) { // 22 - 29
+						if (settings["necrumExtended"] || vars.ILid == 1) { // 22 - 29
 						// Necrum Entry SPLIT
 							if (c_FMV_ID == 10 && vars.splits[22] != true) {
 								vars.splits[22] = true;
@@ -818,7 +1411,7 @@ split
 					}
 					
 					// Necrum SPLITS
-					if (vars.preSplitNecrum && (c_FMV_ID == 25 || c_FMV_ID == 34) && (c_LEVEL_ID >= 2 && c_LEVEL_ID <= 4) && vars.splits[1] != true) { // Cinematics: 25 is mudomo (24 end). 34 is Mudanchee (25 end). 4 is FeeCo.
+					if (vars.ILid == -1 && vars.preSplitNecrum && (c_FMV_ID == 25 || c_FMV_ID == 34) && (c_LEVEL_ID >= 2 && c_LEVEL_ID <= 4) && vars.splits[1] != true) { // Cinematics: 25 is mudomo (24 end). 34 is Mudanchee (25 end). 4 is FeeCo.
 						vars.splits[1] = true;
 						vars.preSplitNecrum = false;
 						vars.countToMud = 1;
@@ -827,7 +1420,31 @@ split
 						return true;
 					}
 					
-					if (c_LEVEL_ID == 5 && o_LEVEL_ID == 2 && vars.splits[2] != true && vars.splits[3] != true){ // From Necrum to FeeCo directly (Any%)
+					if (vars.ILid == 1 && o_LEVEL_ID == 2 && c_LEVEL_ID == 3 && c_FMV_ID == 25){ // Necrum to Mudomo, we prepare to the next save file
+						vars.ILWaitTimer = true;						
+						vars.splits[55] = true; // Recycled for Necrum to Mudanchee split
+						return true;
+					}
+					
+					if (vars.ILid == 1 && o_CAM_ID == 5 && c_CAM_ID == 6 && vars.splits[55] == true){ // Save file 2.
+						vars.ILWaitTimer = false;						
+						vars.splits[55] = false;
+						return true;
+					}
+					
+					if (vars.ILid == 1 && o_LEVEL_ID == 2 && c_LEVEL_ID == 4 && c_FMV_ID == 34){ // Necrum to Mudanchee, we prepare to the next save file
+						vars.ILWaitTimer = true;						
+						vars.splits[56] = true; // Recycled for Necrum to FeeCo split
+						return true;
+					}					
+					
+					if (vars.ILid == 1 && o_LEVEL_ID == 7 && c_LEVEL_ID == 2 && vars.splits[56] == true){ // Save file 3.
+						vars.ILWaitTimer = false;						
+						vars.splits[56] = false; // Recycled for Necrum to Mudanchee split
+						return true;
+					}
+					
+					if (c_LEVEL_ID == 5 && o_LEVEL_ID == 2 && ((vars.splits[2] != true && vars.splits[3] != true) || (vars.ILid == 1))){ // From Necrum to FeeCo directly (Any%)
 						vars.splits[1] = true;
 						vars.splits[2] = true; // We will not use it anymore.
 						vars.splits[3] = true; // We will not use it anymore.
@@ -840,15 +1457,15 @@ split
 			//////////////////////////////
 
 			// FeeCo & FeeCo 2 (LEVEL_ID 5)
-				if (settings["feecoSplit"]) { 					
-					if (settings["feecoExtended"] && c_LEVEL_ID == 2 && o_PATH_ID == 3 && o_CAM_ID == 2 && c_PATH_ID == 3 && c_CAM_ID == 9 && vars.splits[1] == true && vars.splits[2] == true && vars.splits[3] == true) { // SPECIAL: FeeCo entry through Necrum using Farewell FeeCo skip
+				if (settings["feecoSplit"] || vars.ILid == 4) { 					
+					if ((settings["feecoExtended"] || vars.ILid == 4) && c_LEVEL_ID == 2 && o_PATH_ID == 3 && o_CAM_ID == 2 && c_PATH_ID == 3 && c_CAM_ID == 9 && vars.splits[1] == true && vars.splits[2] == true && vars.splits[3] == true) { // SPECIAL: FeeCo entry through Necrum using Farewell FeeCo skip
 						vars.splits[51] = true;
 						vars.LOG_LastSplit = "Special split: Necrum to Terminal 1 (Any% | Farewell FeeCo skip). " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
 					
-					if (settings["feecoExtended"] && c_LEVEL_ID == 5) { // 51 - 55		
+					if ((settings["feecoExtended"] || vars.ILid == 4) && c_LEVEL_ID == 5) { // 51 - 55		
 					// FeeCo Entry
 						if (c_PATH_ID == 1 && c_CAM_ID == 3 && vars.splits[51] != true) {
 							vars.splits[51] = true;
@@ -866,15 +1483,27 @@ split
 						}
 						
 					// Terminal 2
-						if (c_PATH_ID == 2 && c_CAM_ID == 8 && vars.splits[53] != true) {
+						if (o_PATH_ID == 7 && c_PATH_ID == 2 && c_CAM_ID == 8 && (vars.splits[53] != true || vars.splits[0] == true || vars.splits[1] == true)) { // 0 is for 2nd save. 1 is for 3rd save file.
 							vars.splits[53] = true;
-							vars.LOG_LastSplit = "Terminal 2. " + vars.LOG_CurrentTime;
+							if (vars.splits[1] == true){ // Loading the second save file						
+								vars.LOG_LastSplit = "Terminal 2 (go to Executive Office!) " + vars.LOG_CurrentTime;	
+							} else if (vars.splits[0] == true){ // Loading the third save file					
+								vars.LOG_LastSplit = "Terminal 2 (go to Bonewerkz!) " + vars.LOG_CurrentTime;			
+							} else { // First time we come here
+								vars.LOG_LastSplit = "Terminal 2 (go to Barracks!) " + vars.LOG_CurrentTime;								
+							}
+							if (vars.splits[1] == true){								
+								vars.splits[0] = false;
+								vars.splits[1] = false;
+							}
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
+							vars.ILWaitTimer = false;
 							return true;
 						}
 						
 					// Terminal principal to Slig Barracks
-						if (o_PATH_ID == 9 && c_PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 3
+					 // if (o_PATH_ID == 9 && c_PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 3
+						if (o_PATH_ID == 9 && c_PATH_ID == 3 && vars.splits[54] != true) { // If I enter on Terminal 3
 							vars.splits[54] = true;
 							vars.LOG_LastSplit = "Main Terminal to Terminal 3. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
@@ -906,7 +1535,7 @@ split
 						}
 							
 					// Terminal 4
-						if (c_PATH_ID == 4 && o_CAM_ID == 13 && c_CAM_ID == 14 && vars.splits[55] != true) {
+						if (vars.ILid == -1 && c_PATH_ID == 4 && o_CAM_ID == 13 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
 							vars.LOG_LastSplit = "Terminal 4. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
@@ -922,8 +1551,21 @@ split
 						}
 					}		
 				}
+				
+				if (vars.ILid == 4 && o_LEVEL_ID == 5 && (c_LEVEL_ID == 6 || c_LEVEL_ID == 8 || c_LEVEL_ID == 9) && (vars.splits[0] != true || vars.splits[1] != true)){				
+					vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
+					vars.ILWaitTimer = true;					
+					if (vars.splits[0] == false){								
+						vars.splits[0] = true;						
+						vars.LOG_LastSplit = "FeeCo 1. (LOAD SAVE FILE 2)" + vars.LOG_CurrentTime;
+					} else {						
+						vars.splits[1] = true;		
+						vars.LOG_LastSplit = "FeeCo 2. (LOAD SAVE FILE 3)" + vars.LOG_CurrentTime;	
+					}
+					return true;
+				}
 					
-				if ((settings["feecoSplit"] || vars.SplitFeeco2) && o_LEVEL_ID == 5 && (c_LEVEL_ID == 6 || c_LEVEL_ID == 8 || c_LEVEL_ID == 9) && vars.splits[4] != true) { // FeeCo Split. 6 is Bonewerkz.  5 is Barracks. 15 is Brewery
+				if (vars.ILid == -1 && (settings["feecoSplit"] || vars.SplitFeeco2 || vars.ILid == 4) && o_LEVEL_ID == 5 && (c_LEVEL_ID == 6 || c_LEVEL_ID == 8 || c_LEVEL_ID == 9) && vars.splits[4] != true) { // FeeCo Split. 6 is Bonewerkz.  5 is Barracks. 15 is Brewery
 					vars.splits[4] = true;
 					vars.splitsFeeCoAgain = vars.splits[4];
 					vars.splits[8] = true; // We avoid double split if we go from FeeCo to Soulstorm directly.
@@ -940,8 +1582,8 @@ split
 			//////////////////////////////
 					
 			// Slig Barracks (LEVEL_ID 6)
-				if (settings["barracksSplit"]) {
-					if (settings["barracksExtended"] && c_LEVEL_ID == 6) { // 56 - 62			
+				if (settings["barracksSplit"] || vars.ILid == 6) {
+					if ((settings["barracksExtended"] || vars.ILid == 6) && c_LEVEL_ID == 6) { // 56 - 62			
 					// Block 0
 						if (o_PATH_ID == 13 && c_PATH_ID == 2 && vars.splits[56] != true) {
 							vars.splits[56] = true;
@@ -984,7 +1626,7 @@ split
 					
 					}
 				// Dripik (fixed 08 June 2020)
-					if (settings["barracksExtended"] && c_LEVEL_ID == 13 && o_PATH_ID == 11 && c_PATH_ID == 16 && vars.splits[61] != true) {
+					if ((settings["barracksExtended"] || vars.ILid == 6) && c_LEVEL_ID == 13 && o_PATH_ID == 11 && c_PATH_ID == 16 && vars.splits[61] != true) {
 						vars.splits[61] = true;
 						vars.LOG_LastSplit = "Dripik. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
@@ -1010,8 +1652,8 @@ split
 			//////////////////////////////
 					
 			// Bonewerkz (LEVEL_ID 8 and 14)
-				if (settings["bonewerkzSplit"]) {
-					if (settings["bonewerkzExtended"]) { // 63 - 72
+				if (settings["bonewerkzSplit"] || vars.ILid == 5) {
+					if (settings["bonewerkzExtended"] || vars.ILid == 5) { // 63 - 72
 						if (c_LEVEL_ID == 8){			
 						// Bonewerkz Entry
 							if (o_PATH_ID == 1 && c_PATH_ID == 7 && vars.splits[63] != true) {
@@ -1118,8 +1760,8 @@ split
 			//////////////////////////////
 
 			// Executive Office (LEVEL_ID 12)
-				if (settings["officeSplit"]) {
-					if (settings["officeExtended"] && c_LEVEL_ID == 12){ // 73, 74
+				if (settings["officeSplit"] || vars.ILid == 4) {
+					if ((settings["officeExtended"] || vars.ILid == 4) && c_LEVEL_ID == 12){ // 73, 74
 						
 					// Entry Executive Office
 						if (o_CAM_ID == 4 && c_CAM_ID == 5 && vars.splits[73] != true) {
@@ -1148,7 +1790,7 @@ split
 			//////////////////////////////	
 					
 			// FeeCo 3 (LEVEL_ID 5)
-				if (settings["feeco3Split"] && o_LEVEL_ID == 5 && c_LEVEL_ID == 9 && vars.splits[8] != true) {	
+				if ((settings["feeco3Split"] || vars.ILid == 4) && o_LEVEL_ID == 5 && c_LEVEL_ID == 9 && vars.splits[8] != true) {	
 					vars.splits[8] = true;
 						vars.LOG_LastSplit = "FeeCo to Terminal 5. " + vars.LOG_CurrentTime;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
@@ -1156,8 +1798,8 @@ split
 				}
 					
 			// Hub I (LEVEL_ID 9)
-				if (settings["hub1Split"] && c_LEVEL_ID == 9){
-					if (settings["hub1Extended"]){ // 75 - 80
+				if ((settings["hub1Split"] || vars.ILid == 7) && c_LEVEL_ID == 9){
+					if (settings["hub1Extended"] || vars.ILid == 7){ // 75 - 80
 					// SoulStorm Brewery Entry
 						if (o_PATH_ID == 16 && c_PATH_ID == 23 && vars.splits[75] != true) {
 							vars.splits[75] = true;
@@ -1218,8 +1860,8 @@ split
 			//////////////////////////////	
 
 			// Hub II
-				if (settings["hub2Split"] && c_LEVEL_ID == 9){
-					if (settings["hub2Extended"]){ // 81 - 85			
+				if ((settings["hub2Split"] || vars.ILid == 8) && c_LEVEL_ID == 9){
+					if (settings["hub2Extended"] || vars.ILid == 8){ // 81 - 85			
 					// Zulag 6
 						if (o_PATH_ID == 5 && o_CAM_ID == 4 && c_PATH_ID == 24 && vars.splits[81] != true) {
 							vars.splits[81] = true;
@@ -1272,8 +1914,8 @@ split
 			//////////////////////////////
 				
 			// Hub III	
-				if (settings["hub3Split"]){
-					if (settings["hub3Extended"] && c_LEVEL_ID == 9){ // 86 - 89
+				if (settings["hub3Split"] || vars.ILid == 9){
+					if ((settings["hub3Extended"] || vars.ILid == 9) && c_LEVEL_ID == 9){ // 86 - 89
 					// Zulag 11
 						if (o_PATH_ID == 9 && c_PATH_ID == 25 && vars.splits[86] != true) {
 							vars.splits[86] = true;
@@ -1319,7 +1961,7 @@ split
 			//////////////////////////////
 
 			// Soulstorm Brewery		
-				if (settings["boilerSplit"] && c_LEVEL_ID == 10 && (c_FMV_ID == 17 || c_FMV_ID == 18 || c_CAM_ID == 15) && vars.splits[12] != true) {		
+				if ((settings["boilerSplit"] || vars.ILid == 10) && c_LEVEL_ID == 10 && (c_FMV_ID == 17 || c_FMV_ID == 18 || c_CAM_ID == 15) && vars.splits[12] != true) {		
 					vars.splits[12] = true;	
 					vars.LOG_LastSplit = "Zulag 15. Game is over! FINAL TIME-> " + vars.LOG_CurrentTime;
 					vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
