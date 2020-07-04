@@ -2,7 +2,7 @@
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
 //  Created by LegnaX. 04 July 2020.
 
-state("Exoddus", "1.7.0") // EVERY LANGUAGE!!
+state("Exoddus", "1.7.1") // EVERY LANGUAGE!!
 {	
 	// ENGLISH!!
 	byte EN_LEVEL_ID : 0x1C3030;
@@ -68,8 +68,8 @@ state("Exoddus", "1.7.0") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("Version", true, "Official Version 1.7.0 (July 4nd 2020) - LegnaX#7777 - CHANGELOG");
-	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.");
+	settings.Add("Version", true, "Official Version 1.7.1 (July 4nd 2020) - LegnaX#7777 - CHANGELOG");
+	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.");
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout.");
@@ -155,7 +155,7 @@ startup
 
 init
 {	
-	version = "1.7.0";
+	version = "1.7.1";
 	
 	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
 	vars.REAL_TIME = "Real time will be displayed here";
@@ -1049,7 +1049,6 @@ split
 								vars.splits[14] = true;
 								vars.LOG_LastSplit = "Tunnel 1. " + vars.LOG_CurrentTime;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
-								vars.ILWaitTimer = true;
 								return true;
 							}
 							
@@ -1058,7 +1057,6 @@ split
 								vars.splits[15] = true;
 								vars.LOG_LastSplit = "Tunnel 2. " + vars.LOG_CurrentTime;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
-								vars.ILWaitTimer = false;
 								return true;
 							}
 							
