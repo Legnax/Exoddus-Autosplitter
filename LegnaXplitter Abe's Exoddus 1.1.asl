@@ -1,8 +1,8 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 04 July 2020.
+//  Created by LegnaX. 06 July 2020.
 
-state("Exoddus", "1.7.1") // EVERY LANGUAGE!!
+state("Exoddus", "1.7.2") // EVERY LANGUAGE!!
 {	
 	// ENGLISH!!
 	byte EN_LEVEL_ID : 0x1C3030;
@@ -68,8 +68,8 @@ state("Exoddus", "1.7.1") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("Version", true, "Official Version 1.7.1 (July 4nd 2020) - LegnaX#7777 - CHANGELOG");
-	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.");
+	settings.Add("Version", true, "Official Version 1.7.2 (July 6th 2020) - LegnaX#7777 - CHANGELOG");
+	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.");
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout.");
@@ -155,7 +155,7 @@ startup
 
 init
 {	
-	version = "1.7.1";
+	version = "1.7.2";
 	
 	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
 	vars.REAL_TIME = "Real time will be displayed here";
@@ -191,6 +191,9 @@ init
 	vars.MillisecondsPaused = 0;
 	vars.AccumulatedPenaltyTime = 0;
 	vars.LangDetected = "Nothing yet";
+	vars.GNFrame = 0;
+	vars.GNFrameWithoutAddedFrames = 0;
+	vars.Terminal2Split = false; // Used to avoid extra splits on Terminal 2 after the second and third save file.
 } 
 
 start
@@ -917,23 +920,24 @@ isLoading
 				}			
 			}
 			
-			vars.CurrentFrames = c_gnFrame - vars.StartgnFrame;
+			vars.GNFrameWithoutAddedFrames = c_gnFrame - vars.StartgnFrame;
+			vars.GNFrame = c_gnFrame - vars.StartgnFrame + Convert.ToInt32(vars.AccumulatedPenaltyTime / 1000 * vars.fps);
 			
 			 if (c_gnFrame > 0) {
 				if (IsPaused == 1){ // if the game is paused...
 					vars.REAL_TIME = System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "").Replace("00:", "");
-					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
+					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
 					vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
-					if ((TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
+					if ((TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
 						return true;
 					} else {
 						return false;
 					}
 				} else {
 					vars.REAL_TIME = System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "").Replace("00:", "");
-					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
+					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).ToString(@"mm\:ss\.fff");
 					vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
-					if ((TimeSpan.FromMilliseconds(((c_gnFrame - vars.StartgnFrame) * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
+					if ((TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
 						return true;
 					} else {
 						return false;
@@ -1481,7 +1485,8 @@ split
 						}
 						
 					// Terminal 2
-						if (o_PATH_ID == 7 && c_PATH_ID == 2 && c_CAM_ID == 8 && (vars.splits[53] != true || vars.splits[0] == true || vars.splits[1] == true)) { // 0 is for 2nd save. 1 is for 3rd save file.
+						if (o_PATH_ID == 7 && c_PATH_ID == 2 && c_CAM_ID == 8 && (vars.splits[53] != true || vars.splits[0] == true || vars.splits[1] == true) && vars.Terminal2Split == false) { // 0 is for 2nd save. 1 is for 3rd save file.
+							vars.Terminal2Split = true;
 							vars.splits[53] = true;
 							if (vars.splits[1] == true){ // Loading the second save file						
 								vars.LOG_LastSplit = "Terminal 2 (go to Executive Office!) " + vars.LOG_CurrentTime;	
@@ -1503,6 +1508,7 @@ split
 					 // if (o_PATH_ID == 9 && c_PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 3
 						if (o_PATH_ID == 9 && c_PATH_ID == 3 && vars.splits[54] != true) { // If I enter on Terminal 3
 							vars.splits[54] = true;
+							vars.Terminal2Split = false;
 							vars.LOG_LastSplit = "Main Terminal to Terminal 3. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
@@ -1511,6 +1517,7 @@ split
 					// Terminal principal to Bonewerkz
 						if (o_PATH_ID == 9 && c_PATH_ID == 4 && vars.splits[54] != true) { // If I enter on Terminal 4
 							vars.splits[54] = true;
+							vars.Terminal2Split = false;
 							vars.LOG_LastSplit = "Main Terminal to Terminal 4. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
@@ -1519,6 +1526,7 @@ split
 					// Terminal principal to Soulstorm Brewery
 						if (o_PATH_ID == 2 && c_PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 5
 							vars.splits[54] = true;
+							vars.Terminal2Split = false;
 							vars.LOG_LastSplit = "Main Terminal to Terminal 5. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
@@ -1527,6 +1535,7 @@ split
 					// Terminal 3
 						if (c_PATH_ID == 5 && o_CAM_ID == 3 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
+							vars.Terminal2Split = false;
 							vars.LOG_LastSplit = "Terminal 3. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
@@ -1535,6 +1544,7 @@ split
 					// Terminal 4
 						if (vars.ILid == -1 && c_PATH_ID == 4 && o_CAM_ID == 13 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
+							vars.Terminal2Split = false;
 							vars.LOG_LastSplit = "Terminal 4. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
@@ -1543,16 +1553,18 @@ split
 					// Terminal 5
 						if (c_PATH_ID == 5 && o_CAM_ID == 7 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
+							vars.Terminal2Split = false;
 							vars.LOG_LastSplit = "Terminal 5. " + vars.LOG_CurrentTime;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
 					}		
 				}
-				
-				if (vars.ILid == 4 && o_LEVEL_ID == 5 && (c_LEVEL_ID == 6 || c_LEVEL_ID == 8 || c_LEVEL_ID == 9) && (vars.splits[0] != true || vars.splits[1] != true)){				
+				// Enter on any of the train doors
+				if (vars.ILid == 4 && o_LEVEL_ID == 5 && (c_LEVEL_ID == 6 || c_LEVEL_ID == 8 || c_LEVEL_ID == 9) && (vars.splits[0] != true || vars.splits[1] != true)){ 				
 					vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
-					vars.ILWaitTimer = true;					
+					vars.ILWaitTimer = true;	
+					vars.Terminal2Split = false;					
 					if (vars.splits[0] == false){								
 						vars.splits[0] = true;						
 						vars.LOG_LastSplit = "FeeCo 1. (LOAD SAVE FILE 2)" + vars.LOG_CurrentTime;
