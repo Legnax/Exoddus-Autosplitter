@@ -1,8 +1,8 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 06 July 2020.
+//  Created by LegnaX. 10 July 2020.
 
-state("Exoddus", "1.7.2") // EVERY LANGUAGE!!
+state("Exoddus", "1.7.3") // EVERY LANGUAGE!!
 {	
 	// ENGLISH!!
 	byte EN_LEVEL_ID : 0x1C3030;
@@ -68,8 +68,8 @@ state("Exoddus", "1.7.2") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("Version", true, "Official Version 1.7.2 (July 6th 2020) - LegnaX#7777 - CHANGELOG");
-	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.");
+	settings.Add("Version", true, "Official Version 1.7.3 (July 10th 2020) - LegnaX#7777 - CHANGELOG");
+	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.\n- Fixed a faulty split on Mudomo and Mudanchee (vaults).");
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout.");
@@ -155,7 +155,7 @@ startup
 
 init
 {	
-	version = "1.7.2";
+	version = "1.7.3";
 	
 	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
 	vars.REAL_TIME = "Real time will be displayed here";
@@ -163,8 +163,9 @@ init
 	vars.LOG_LastSplit = "No split yet. Game version: " + version;
 	vars.LOG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.LOG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
-	vars.LOG_CurrentTime = "[00:00:00.000]";
-	vars.LOG_ModuleMemory = modules.First().ModuleMemorySize;
+	vars.LOG_CurrentRTA = "[00:00:00.000]";
+	vars.GNFrame = 0;
+	// vars.LOG_ModuleMemory = modules.First().ModuleMemorySize;	
 	
 	vars.preSplitNecrum = false;
 	vars.preSplitMudomo = false;
@@ -191,7 +192,6 @@ init
 	vars.MillisecondsPaused = 0;
 	vars.AccumulatedPenaltyTime = 0;
 	vars.LangDetected = "Nothing yet";
-	vars.GNFrame = 0;
 	vars.GNFrameWithoutAddedFrames = 0;
 	vars.Terminal2Split = false; // Used to avoid extra splits on Terminal 2 after the second and third save file.
 } 
@@ -963,7 +963,7 @@ split
 	int o_FMV_ID = -1;
 	int c_FMV_ID = -1;
 	int abeY = -1;
-	vars.LOG_CurrentTime = "[" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
+	vars.LOG_CurrentRTA = "[" + System.Convert.ToString(timer.CurrentTime.RealTime).Replace("0000", "") + "]";
 	if (System.Convert.ToString(timer.CurrentTime.RealTime).Contains("00:00:00")) { // Used for resetting the main variables of the program if the timer resets. 		
 		vars.SplitFeeco2 = false;
 		vars.preSplitNecrum = false;
@@ -1051,7 +1051,7 @@ split
 						// Tunnel 1 SPLIT
 							if (c_FMV_ID == 71 && vars.splits[14] != true) {
 								vars.splits[14] = true;
-								vars.LOG_LastSplit = "Tunnel 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1059,7 +1059,7 @@ split
 						// Tunnel 2 SPLIT
 							if (o_PATH_ID == 2 && c_PATH_ID == 3 && vars.splits[15] != true) {
 								vars.splits[15] = true;
-								vars.LOG_LastSplit = "Tunnel 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1067,7 +1067,7 @@ split
 						// Slog SPLIT
 							if (o_PATH_ID == 3 && c_PATH_ID == 4 && vars.splits[16] != true) {
 								vars.splits[16] = true;
-								vars.LOG_LastSplit = "Slogs. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Slogs. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1075,7 +1075,7 @@ split
 						// Tunnel 3 SPLIT
 							if (c_FMV_ID == 32 && vars.splits[17] != true) {
 								vars.splits[17] = true;
-								vars.LOG_LastSplit = "Tunnel 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1083,7 +1083,7 @@ split
 						// Tunnel 4 SPLIT
 							if (c_FMV_ID == 17 && vars.splits[18] != true) {
 								vars.splits[18] = true;
-								vars.LOG_LastSplit = "Tunnel 4. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 4. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1091,7 +1091,7 @@ split
 						// Tunnel 5 SPLIT
 							if (c_FMV_ID == 5 && vars.splits[19] != true) {
 								vars.splits[19] = true;
-								vars.LOG_LastSplit = "Tunnel 5. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 5. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1099,7 +1099,7 @@ split
 						// Tunnel 6 SPLIT
 							if (c_FMV_ID == 30 && vars.splits[20] != true) {
 								vars.splits[20] = true;
-								vars.LOG_LastSplit = "Tunnel 6. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 6. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1107,7 +1107,7 @@ split
 						// Tunnel 7 SPLIT
 							if (c_FMV_ID == 28 && vars.splits[21] != true) {
 								vars.splits[21] = true;
-								vars.LOG_LastSplit = "Tunnel 7. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Tunnel 7. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1116,7 +1116,7 @@ split
 					// MINES SPLIT
 						if (c_FMV_ID == 232 && vars.splits[0] != true) {
 							vars.splits[0] = true;
-							vars.LOG_LastSplit = "Mines, last split. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Mines, last split. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1131,7 +1131,7 @@ split
 					// Mudomo Entry 1
 						if (c_FMV_ID == 29 && vars.splits[30] != true) {
 								vars.splits[30] = true;
-								vars.LOG_LastSplit = "Mudomo Entry 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Entry 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1139,7 +1139,7 @@ split
 					// Mudomo Entry 2
 						if (c_FMV_ID == 33 && vars.splits[31] != true) {
 								vars.splits[31] = true;
-								vars.LOG_LastSplit = "Mudomo Entry 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Entry 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1147,7 +1147,7 @@ split
 					// Mudomo Entry 3
 						if (c_PATH_ID == 8 && vars.splits[32] != true) {
 								vars.splits[32] = true;
-								vars.LOG_LastSplit = "Mudomo Entry 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Entry 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1155,7 +1155,7 @@ split
 					// Mudomo Trial 1
 						if (c_FMV_ID == 13 && vars.splits[33] != true) {
 								vars.splits[33] = true;
-								vars.LOG_LastSplit = "Mudomo Trial 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Trial 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1163,7 +1163,7 @@ split
 					// Mudomo Trial 2
 						if (c_FMV_ID == 17 && vars.splits[34] != true) {
 								vars.splits[34] = true;
-								vars.LOG_LastSplit = "Mudomo Trial 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Trial 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1171,7 +1171,7 @@ split
 					// Mudomo Trial 3
 						if (c_FMV_ID == 15 && vars.splits[35] != true) {
 								vars.splits[35] = true;
-								vars.LOG_LastSplit = "Mudomo Trial 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Trial 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1179,7 +1179,7 @@ split
 					// Mudomo Trial 4
 						if (c_FMV_ID == 9 && vars.splits[36] != true) {
 								vars.splits[36] = true;
-								vars.LOG_LastSplit = "Mudomo Trial 4. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Trial 4. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1187,7 +1187,7 @@ split
 					// Mudomo Trial 5
 						if (c_FMV_ID == 6 && vars.splits[37] != true) {
 								vars.splits[37] = true;
-								vars.LOG_LastSplit = "Mudomo Trial 5. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Trial 5. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1195,7 +1195,7 @@ split
 					// Mudomo Trial 6
 						if (c_FMV_ID == 31 && vars.splits[38] != true) {
 								vars.splits[38] = true;
-								vars.LOG_LastSplit = "Mudomo Trial 6. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudomo Trial 6. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1203,9 +1203,9 @@ split
 					}
 					
 				// Mudomo Vaults
-					if (o_LEVEL_ID == 11 && c_LEVEL_ID == 2 && settings["mudomoExtended"] && vars.splits[39] != true) {
+					if ((settings["mudomoExtended"] || vars.ILid == 2) && o_LEVEL_ID == 11 && c_LEVEL_ID == 2 && vars.splits[39] != true) {
 						vars.splits[39] = true;
-						vars.LOG_LastSplit = "Mudomo Vaults. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Mudomo Vaults. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1216,9 +1216,9 @@ split
 					}
 				
 				// Mudomo split
-					if (vars.countToMud >= 1000 && ((c_LEVEL_ID == 4 && c_PATH_ID == 6 && c_CAM_ID == 23 && c_FMV_ID == 34 && vars.preSplitMudomo) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[2] != true) { 
+					if ((vars.countToMud >= 1000 || vars.ILid == 2) && ((c_LEVEL_ID == 4 && c_PATH_ID == 6 && c_CAM_ID == 23 && c_FMV_ID == 34 && vars.preSplitMudomo) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[2] != true) { 
 						vars.splits[2] = true;
-						vars.LOG_LastSplit = "Mudomo. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Mudomo. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1232,7 +1232,7 @@ split
 						// Mudanchee Entry 1
 							if (c_FMV_ID == 25 && vars.splits[40] != true) {
 								vars.splits[40] = true;
-								vars.LOG_LastSplit = "Mudanchee Entry 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Entry 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1240,7 +1240,7 @@ split
 						// Mudanchee Entry 2
 							if (c_FMV_ID == 30 && vars.splits[41] != true) {
 								vars.splits[41] = true;
-								vars.LOG_LastSplit = "Mudanchee Entry 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Entry 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1248,7 +1248,7 @@ split
 						// Mudanchee Entry 3
 							if (c_FMV_ID == 28 && vars.splits[42] != true) {
 								vars.splits[42] = true;
-								vars.LOG_LastSplit = "Mudanchee Entry 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Entry 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1256,7 +1256,7 @@ split
 						// Mudanchee Entry 4
 							if (c_PATH_ID == 7 && o_CAM_ID == 2 && c_CAM_ID == 4 && vars.splits[43] != true) {
 								vars.splits[43] = true;
-								vars.LOG_LastSplit = "Mudanchee Entry 4. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Entry 4. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1264,7 +1264,7 @@ split
 						// Mudanchee Trial 1
 							if (c_FMV_ID == 2 && vars.splits[44] != true) {
 								vars.splits[44] = true;
-								vars.LOG_LastSplit = "Mudanchee Trial 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Trial 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1272,7 +1272,7 @@ split
 						// Mudanchee Trial 2
 							if (c_FMV_ID == 6 && vars.splits[45] != true) {
 								vars.splits[45] = true;
-								vars.LOG_LastSplit = "Mudanchee Trial 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Trial 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1280,7 +1280,7 @@ split
 						// Mudanchee Trial 3
 							if (c_FMV_ID == 23 && vars.splits[46] != true) {
 								vars.splits[46] = true;
-								vars.LOG_LastSplit = "Mudanchee Trial 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Trial 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1288,7 +1288,7 @@ split
 						// Mudanchee Trial 4
 							if (c_FMV_ID == 14 && vars.splits[47] != true) {
 								vars.splits[47] = true;
-								vars.LOG_LastSplit = "Mudanchee Trial 4. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Trial 4. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1296,7 +1296,7 @@ split
 						// Mudanchee Trial 5
 							if (c_FMV_ID == 3 && vars.splits[48] != true) {
 								vars.splits[48] = true;
-								vars.LOG_LastSplit = "Mudanchee Trial 5. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Trial 5. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1304,7 +1304,7 @@ split
 						// Mudanchee Trial 6
 							if (c_FMV_ID == 11 && vars.splits[49] != true) {
 								vars.splits[49] = true;
-								vars.LOG_LastSplit = "Mudanchee Trial 6. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Mudanchee Trial 6. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1313,7 +1313,7 @@ split
 					// Mudanchee Vaults
 						if (o_LEVEL_ID == 7 && c_LEVEL_ID == 2 && vars.splits[50] != true) { 
 							vars.splits[50] = true;
-							vars.LOG_LastSplit = "Mudanchee Vaults. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Mudanchee Vaults. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1323,9 +1323,9 @@ split
 						vars.preSplitMudanchee = true;
 					}
 					
-					if (vars.countToMud >= 1000 && ((c_LEVEL_ID == 3 && c_PATH_ID == 1 && c_CAM_ID == 1 && c_FMV_ID == 25 && vars.preSplitMudanchee) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[3] != true) { // Mudanchee Split: we are in Mudomo or Wheel to FeeCo. 
+					if ((vars.countToMud >= 1000 || vars.ILid == 3) && ((c_LEVEL_ID == 3 && c_PATH_ID == 1 && c_CAM_ID == 1 && c_FMV_ID == 25 && vars.preSplitMudanchee) || (o_PATH_ID == 3 && c_PATH_ID == 1 && c_LEVEL_ID == 5)) && vars.splits[3] != true) { // Mudanchee Split: we are in Mudomo or Wheel to FeeCo. 
 						vars.splits[3] = true;
-						vars.LOG_LastSplit = "Mudanchee. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Mudanchee. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1339,7 +1339,7 @@ split
 						// Necrum Entry SPLIT
 							if (c_FMV_ID == 10 && vars.splits[22] != true) {
 								vars.splits[22] = true;
-								vars.LOG_LastSplit = "Necrum Entry. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Necrum Entry. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1347,7 +1347,7 @@ split
 						// Hands SPLIT
 							if (c_FMV_ID == 9 && vars.splits[23] != true) {
 								vars.splits[23] = true;
-								vars.LOG_LastSplit = "Handstones. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Handstones. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1355,7 +1355,7 @@ split
 						// Fleeches Entry SPLIT
 							if (c_FMV_ID == 6 && vars.splits[24] != true) {
 								vars.splits[24] = true;
-								vars.LOG_LastSplit = "Fleeches Entry. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Fleeches Entry. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1363,7 +1363,7 @@ split
 						// Fleeches 1 SPLIT
 							if (c_FMV_ID == 18 && vars.splits[25] != true) {
 								vars.splits[25] = true;
-								vars.LOG_LastSplit = "Fleeches 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Fleeches 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1371,7 +1371,7 @@ split
 						// Fleeches 2 SPLIT
 							if (c_FMV_ID == 19 && vars.splits[26] != true) {
 								vars.splits[26] = true;
-								vars.LOG_LastSplit = "Fleeches 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Fleeches 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1379,7 +1379,7 @@ split
 						// Fleeches 3 SPLIT
 							if (c_FMV_ID == 20 && vars.splits[27] != true) {
 								vars.splits[27] = true;
-								vars.LOG_LastSplit = "Fleeches 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Fleeches 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1387,7 +1387,7 @@ split
 						// Fleeches 4 SPLIT
 							if (c_FMV_ID == 21 && vars.splits[28] != true) {
 								vars.splits[28] = true;
-								vars.LOG_LastSplit = "Fleeches 4. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Fleeches 4. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1395,7 +1395,7 @@ split
 						// Fleeches 5 SPLIT
 							if (c_FMV_ID == 15 && vars.splits[29] != true) {
 								vars.splits[29] = true;
-								vars.LOG_LastSplit = "Fleeches 5. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Fleeches 5. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1417,7 +1417,7 @@ split
 						vars.splits[1] = true;
 						vars.preSplitNecrum = false;
 						vars.countToMud = 1;
-						vars.LOG_LastSplit = "Necrum to Mudomo / Mudanchee. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Necrum to Mudomo / Mudanchee. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1451,7 +1451,7 @@ split
 						vars.splits[2] = true; // We will not use it anymore.
 						vars.splits[3] = true; // We will not use it anymore.
 						vars.preSplitNecrum = false;
-						vars.LOG_LastSplit = "Necrum to FeeCo. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Necrum to FeeCo. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1462,7 +1462,7 @@ split
 				if (settings["feecoSplit"] || vars.ILid == 4) { 					
 					if ((settings["feecoExtended"] || vars.ILid == 4) && c_LEVEL_ID == 2 && o_PATH_ID == 3 && o_CAM_ID == 2 && c_PATH_ID == 3 && c_CAM_ID == 9 && vars.splits[1] == true && vars.splits[2] == true && vars.splits[3] == true) { // SPECIAL: FeeCo entry through Necrum using Farewell FeeCo skip
 						vars.splits[51] = true;
-						vars.LOG_LastSplit = "Special split: Necrum to Terminal 1 (Any% | Farewell FeeCo skip). " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Special split: Necrum to Terminal 1 (Any% | Farewell FeeCo skip). " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1471,7 +1471,7 @@ split
 					// FeeCo Entry
 						if (c_PATH_ID == 1 && c_CAM_ID == 3 && vars.splits[51] != true) {
 							vars.splits[51] = true;
-							vars.LOG_LastSplit = "FeeCo Entry. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "FeeCo Entry. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1479,7 +1479,7 @@ split
 					// Terminal 1
 						if (c_PATH_ID == 7 && c_CAM_ID == 1 && vars.splits[52] != true) {
 							vars.splits[52] = true;
-							vars.LOG_LastSplit = "Terminal 1. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Terminal 1. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1489,11 +1489,11 @@ split
 							vars.Terminal2Split = true;
 							vars.splits[53] = true;
 							if (vars.splits[1] == true){ // Loading the second save file						
-								vars.LOG_LastSplit = "Terminal 2 (go to Executive Office!) " + vars.LOG_CurrentTime;	
+								vars.LOG_LastSplit = "Terminal 2 (go to Executive Office!) " + vars.LOG_CurrentRTA;	
 							} else if (vars.splits[0] == true){ // Loading the third save file					
-								vars.LOG_LastSplit = "Terminal 2 (go to Bonewerkz!) " + vars.LOG_CurrentTime;			
+								vars.LOG_LastSplit = "Terminal 2 (go to Bonewerkz!) " + vars.LOG_CurrentRTA;			
 							} else { // First time we come here
-								vars.LOG_LastSplit = "Terminal 2 (go to Barracks!) " + vars.LOG_CurrentTime;								
+								vars.LOG_LastSplit = "Terminal 2 (go to Barracks!) " + vars.LOG_CurrentRTA;								
 							}
 							if (vars.splits[1] == true){								
 								vars.splits[0] = false;
@@ -1509,7 +1509,7 @@ split
 						if (o_PATH_ID == 9 && c_PATH_ID == 3 && vars.splits[54] != true) { // If I enter on Terminal 3
 							vars.splits[54] = true;
 							vars.Terminal2Split = false;
-							vars.LOG_LastSplit = "Main Terminal to Terminal 3. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Main Terminal to Terminal 3. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1518,7 +1518,7 @@ split
 						if (o_PATH_ID == 9 && c_PATH_ID == 4 && vars.splits[54] != true) { // If I enter on Terminal 4
 							vars.splits[54] = true;
 							vars.Terminal2Split = false;
-							vars.LOG_LastSplit = "Main Terminal to Terminal 4. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Main Terminal to Terminal 4. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1527,7 +1527,7 @@ split
 						if (o_PATH_ID == 2 && c_PATH_ID == 5 && vars.splits[54] != true) { // If I enter on Terminal 5
 							vars.splits[54] = true;
 							vars.Terminal2Split = false;
-							vars.LOG_LastSplit = "Main Terminal to Terminal 5. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Main Terminal to Terminal 5. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1536,7 +1536,7 @@ split
 						if (c_PATH_ID == 5 && o_CAM_ID == 3 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
 							vars.Terminal2Split = false;
-							vars.LOG_LastSplit = "Terminal 3. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Terminal 3. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1545,7 +1545,7 @@ split
 						if (vars.ILid == -1 && c_PATH_ID == 4 && o_CAM_ID == 13 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
 							vars.Terminal2Split = false;
-							vars.LOG_LastSplit = "Terminal 4. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Terminal 4. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1554,7 +1554,7 @@ split
 						if (c_PATH_ID == 5 && o_CAM_ID == 7 && c_CAM_ID == 14 && vars.splits[55] != true) {
 							vars.splits[55] = true;
 							vars.Terminal2Split = false;
-							vars.LOG_LastSplit = "Terminal 5. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Terminal 5. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1567,10 +1567,10 @@ split
 					vars.Terminal2Split = false;					
 					if (vars.splits[0] == false){								
 						vars.splits[0] = true;						
-						vars.LOG_LastSplit = "FeeCo 1. (LOAD SAVE FILE 2)" + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "FeeCo 1. (LOAD SAVE FILE 2)" + vars.LOG_CurrentRTA;
 					} else {						
 						vars.splits[1] = true;		
-						vars.LOG_LastSplit = "FeeCo 2. (LOAD SAVE FILE 3)" + vars.LOG_CurrentTime;	
+						vars.LOG_LastSplit = "FeeCo 2. (LOAD SAVE FILE 3)" + vars.LOG_CurrentRTA;	
 					}
 					return true;
 				}
@@ -1580,11 +1580,11 @@ split
 					vars.splitsFeeCoAgain = vars.splits[4];
 					vars.splits[8] = true; // We avoid double split if we go from FeeCo to Soulstorm directly.
 					if (vars.splits[5]) { // Slig Barracks ya fue completado.
-						vars.LOG_LastSplit = "FeeCo 2 to Bonewerkz. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "FeeCo 2 to Bonewerkz. " + vars.LOG_CurrentRTA;
 					} else if (vars.splits[6]){ // Bonewerkz ya fue completado.
-						vars.LOG_LastSplit = "FeeCo 2 to Slig Barracks. " + vars.LOG_CurrentTime;		
+						vars.LOG_LastSplit = "FeeCo 2 to Slig Barracks. " + vars.LOG_CurrentRTA;		
 					} else { // Nada fue completado.
-						vars.LOG_LastSplit = "FeeCo 1. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "FeeCo 1. " + vars.LOG_CurrentRTA;
 					}
 					vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 					return true;
@@ -1597,7 +1597,7 @@ split
 					// Block 0
 						if (o_PATH_ID == 13 && c_PATH_ID == 2 && vars.splits[56] != true) {
 							vars.splits[56] = true;
-							vars.LOG_LastSplit = "Block 0. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Block 0. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1605,7 +1605,7 @@ split
 					// Block 1
 						if (o_PATH_ID == 10 && c_PATH_ID == 2 && vars.splits[57] != true) {
 							vars.splits[57] = true;
-							vars.LOG_LastSplit = "Block 1. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Block 1. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1613,7 +1613,7 @@ split
 					// Block 2
 						if (o_PATH_ID == 5 && c_PATH_ID == 2 && vars.splits[58] != true) {
 							vars.splits[58] = true;
-							vars.LOG_LastSplit = "Block 2. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Block 2. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1621,7 +1621,7 @@ split
 					// Block 3
 						if (o_PATH_ID == 7 && c_PATH_ID == 2 && vars.splits[59] != true) {
 							vars.splits[59] = true;
-							vars.LOG_LastSplit = "Block 3. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Block 3. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1629,7 +1629,7 @@ split
 					// Block 4
 						if (o_PATH_ID == 14 && c_PATH_ID == 2 && vars.splits[60] != true) {
 							vars.splits[60] = true;
-							vars.LOG_LastSplit = "Block 4. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Block 4. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}	
@@ -1638,7 +1638,7 @@ split
 				// Dripik (fixed 08 June 2020)
 					if ((settings["barracksExtended"] || vars.ILid == 6) && c_LEVEL_ID == 13 && o_PATH_ID == 11 && c_PATH_ID == 16 && vars.splits[61] != true) {
 						vars.splits[61] = true;
-						vars.LOG_LastSplit = "Dripik. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Dripik. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}	
@@ -1654,7 +1654,7 @@ split
 							vars.splitsFeeCoAgain = vars.splits[4];
 							vars.SplitFeeco2 = true;
 						}
-						vars.LOG_LastSplit = "Slig Barracks. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Slig Barracks. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1668,7 +1668,7 @@ split
 						// Bonewerkz Entry
 							if (o_PATH_ID == 1 && c_PATH_ID == 7 && vars.splits[63] != true) {
 								vars.splits[63] = true;
-								vars.LOG_LastSplit = "Bonewerkz Entry. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Bonewerkz Entry. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1676,7 +1676,7 @@ split
 						// Annex 1
 							if (o_PATH_ID == 7 && c_PATH_ID == 1 && vars.splits[64] != true) {
 								vars.splits[64] = true;
-								vars.LOG_LastSplit = "Annex 1. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 1. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1684,7 +1684,7 @@ split
 						// Annex 2
 							if (o_PATH_ID == 1 && c_PATH_ID == 2 && vars.splits[65] != true) {
 								vars.splits[65] = true;
-								vars.LOG_LastSplit = "Annex 2. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 2. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1692,7 +1692,7 @@ split
 						// Annex 3
 							if (c_PATH_ID == 2 && c_CAM_ID == 4 && vars.splits[66] != true) {
 								vars.splits[66] = true;
-								vars.LOG_LastSplit = "Annex 3. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 3. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1700,7 +1700,7 @@ split
 						// Annex 4
 							if (c_PATH_ID == 2 && c_CAM_ID == 7 && vars.splits[67] != true) {
 								vars.splits[67] = true;
-								vars.LOG_LastSplit = "Annex 4. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 4. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1708,7 +1708,7 @@ split
 						// Annex 5
 							if (c_PATH_ID == 2 && c_CAM_ID == 9 && vars.splits[68] != true) {
 								vars.splits[68] = true;
-								vars.LOG_LastSplit = "Annex 5. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 5. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1716,7 +1716,7 @@ split
 						// Annex 6
 							if (o_PATH_ID == 2 && c_PATH_ID == 3 && vars.splits[69] != true) {
 								vars.splits[69] = true;
-								vars.LOG_LastSplit = "Annex 6. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 6. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1724,7 +1724,7 @@ split
 						// Annex 7
 							if (o_PATH_ID == 3 && c_PATH_ID == 4 && vars.splits[70] != true) {
 								vars.splits[70] = true;
-								vars.LOG_LastSplit = "Annex 7. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 7. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1734,7 +1734,7 @@ split
 						// Annex 8
 							if (c_PATH_ID == 14 && vars.splits[71] != true) {
 								vars.splits[71] = true;
-								vars.LOG_LastSplit = "Annex 8. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Annex 8. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								return true;
 							}
@@ -1746,7 +1746,7 @@ split
 						// Phleg
 							if (vars.PrePhlegSplit && c_PATH_ID == 9 && o_CAM_ID == 9 && c_CAM_ID == 8 && vars.splits[72] != true) {
 								vars.splits[72] = true;
-								vars.LOG_LastSplit = "Phleg. " + vars.LOG_CurrentTime;
+								vars.LOG_LastSplit = "Phleg. " + vars.LOG_CurrentRTA;
 								vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 								vars.PrePhlegSplit = false;
 								return true;
@@ -1762,7 +1762,7 @@ split
 							vars.splitsFeeCoAgain = vars.splits[4];
 							vars.SplitFeeco2 = true;
 						}
-						vars.LOG_LastSplit = "Bonewerkz. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Bonewerkz. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ".";
 						return true;
 					}
@@ -1776,7 +1776,7 @@ split
 					// Entry Executive Office
 						if (o_CAM_ID == 4 && c_CAM_ID == 5 && vars.splits[73] != true) {
 							vars.splits[73] = true;
-							vars.LOG_LastSplit = "Entry Executive Office. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Entry Executive Office. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1784,7 +1784,7 @@ split
 					// Aslik
 						if (o_CAM_ID == 8 && c_CAM_ID == 2 && vars.splits[74] != true) {
 							vars.splits[74] = true;
-							vars.LOG_LastSplit = "Aslik. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Aslik. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1792,7 +1792,7 @@ split
 					
 					if (o_LEVEL_ID == 12 && c_LEVEL_ID == 5 && vars.splits[7] != true) {
 						vars.splits[7] = true;
-						vars.LOG_LastSplit = "Executive Office. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Executive Office. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1802,7 +1802,7 @@ split
 			// FeeCo 3 (LEVEL_ID 5)
 				if ((settings["feeco3Split"] || vars.ILid == 4) && o_LEVEL_ID == 5 && c_LEVEL_ID == 9 && vars.splits[8] != true) {	
 					vars.splits[8] = true;
-						vars.LOG_LastSplit = "FeeCo to Terminal 5. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "FeeCo to Terminal 5. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 					return true;
 				}
@@ -1813,7 +1813,7 @@ split
 					// SoulStorm Brewery Entry
 						if (o_PATH_ID == 16 && c_PATH_ID == 23 && vars.splits[75] != true) {
 							vars.splits[75] = true;
-							vars.LOG_LastSplit = "Zulag 0 (Soulstorm Brewery Entry). " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 0 (Soulstorm Brewery Entry). " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1821,7 +1821,7 @@ split
 					// Zulag 1
 						if (o_PATH_ID == 1 && c_PATH_ID == 23 && vars.splits[76] != true) {
 							vars.splits[76] = true;
-							vars.LOG_LastSplit = "Zulag 1. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 1. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1829,7 +1829,7 @@ split
 					// Zulag 2
 						if (o_PATH_ID == 2 && c_PATH_ID == 23 && vars.splits[77] != true) {
 							vars.splits[77] = true;
-							vars.LOG_LastSplit = "Zulag 2. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 2. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1837,7 +1837,7 @@ split
 					// Zulag 3
 						if (o_PATH_ID == 12 && c_PATH_ID == 23 && vars.splits[78] != true) {
 							vars.splits[78] = true;
-							vars.LOG_LastSplit = "Zulag 3. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 3. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1845,7 +1845,7 @@ split
 					// Zulag 4
 						if (o_PATH_ID == 19 && c_PATH_ID == 23 && vars.splits[79] != true) {
 							vars.splits[79] = true;
-							vars.LOG_LastSplit = "Zulag 4. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 4. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1853,7 +1853,7 @@ split
 					// Zulag 5
 						if (o_PATH_ID == 14 && c_PATH_ID == 23 && vars.splits[80] != true) {
 							vars.splits[80] = true;
-							vars.LOG_LastSplit = "Zulag 5. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 5. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1862,7 +1862,7 @@ split
 				// Hub 1
 					if (o_PATH_ID == 23 && c_PATH_ID == 24 && vars.splits[9] != true) { 
 						vars.splits[9] = true;
-						vars.LOG_LastSplit = "Hub 1. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Hub 1. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1875,7 +1875,7 @@ split
 					// Zulag 6
 						if (o_PATH_ID == 5 && o_CAM_ID == 4 && c_PATH_ID == 24 && vars.splits[81] != true) {
 							vars.splits[81] = true;
-							vars.LOG_LastSplit = "Zulag 6. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 6. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1883,7 +1883,7 @@ split
 					// Zulag 7
 						if (o_PATH_ID == 6 && o_CAM_ID == 10 && c_PATH_ID == 24 && vars.splits[82] != true) {
 							vars.splits[82] = true;
-							vars.LOG_LastSplit = "Zulag 7. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 7. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1891,7 +1891,7 @@ split
 					// Zulag 8
 						if (o_PATH_ID == 3 && c_PATH_ID == 24 && vars.splits[83] != true) {
 							vars.splits[83] = true;
-							vars.LOG_LastSplit = "Zulag 8. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 8. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1899,7 +1899,7 @@ split
 					// Zulag 9
 						if (o_PATH_ID == 17 && c_PATH_ID == 24 && vars.splits[84] != true) {
 							vars.splits[84] = true;
-							vars.LOG_LastSplit = "Zulag 9. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 9. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1907,7 +1907,7 @@ split
 					// Zulag 10
 						if (o_PATH_ID == 10 && c_PATH_ID == 24 && vars.splits[85] != true) {
 							vars.splits[85] = true;
-							vars.LOG_LastSplit = "Zulag 10. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 10. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1916,7 +1916,7 @@ split
 				// Hub 2
 					if (o_PATH_ID == 24 && c_PATH_ID == 25 && vars.splits[10] != true) {
 						vars.splits[10] = true;
-						vars.LOG_LastSplit = "Hub 2. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Hub 2. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1929,14 +1929,14 @@ split
 					// Zulag 11
 						if (o_PATH_ID == 9 && c_PATH_ID == 25 && vars.splits[86] != true) {
 							vars.splits[86] = true;
-							vars.LOG_LastSplit = "Zulag 11. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 11. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
 					// Zulag 12
 						if (o_PATH_ID == 11 && c_PATH_ID == 25 && vars.splits[87] != true) {
 							vars.splits[87] = true;
-							vars.LOG_LastSplit = "Zulag 12. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 12. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1944,7 +1944,7 @@ split
 					// Zulag 13
 						if ((o_PATH_ID == 20 || o_PATH_ID == 15) && c_PATH_ID == 25 && vars.splits[88] != true) {
 							vars.splits[88] = true;
-							vars.LOG_LastSplit = "Zulag 13. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 13. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1953,7 +1953,7 @@ split
 					// Zulag 14
 						if (o_PATH_ID == 4 && o_CAM_ID == 13 && c_PATH_ID == 25 && vars.splits[89] != true) {
 							vars.splits[89] = true;
-							vars.LOG_LastSplit = "Zulag 14. " + vars.LOG_CurrentTime;
+							vars.LOG_LastSplit = "Zulag 14. " + vars.LOG_CurrentRTA;
 							vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 							return true;
 						}
@@ -1962,7 +1962,7 @@ split
 				// Hub 3
 					if (c_LEVEL_ID == 10 && c_PATH_ID == 1 && vars.splits[11] != true) {
 						vars.splits[11] = true;
-						vars.LOG_LastSplit = "Hub 3. " + vars.LOG_CurrentTime;
+						vars.LOG_LastSplit = "Hub 3. " + vars.LOG_CurrentRTA;
 						vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 						return true;
 					}
@@ -1973,7 +1973,7 @@ split
 			// Soulstorm Brewery		
 				if ((settings["boilerSplit"] || vars.ILid == 10) && c_LEVEL_ID == 10 && (c_FMV_ID == 17 || c_FMV_ID == 18 || c_CAM_ID == 15) && vars.splits[12] != true) {		
 					vars.splits[12] = true;	
-					vars.LOG_LastSplit = "Zulag 15. Game is over! FINAL TIME-> " + vars.LOG_CurrentTime;
+					vars.LOG_LastSplit = "Zulag 15. Game is over! FINAL TIME-> " + vars.LOG_CurrentRTA;
 					vars.LOG_LocationLastSplit = "Level = " + c_LEVEL_ID + ". Path = " + c_PATH_ID + ". Cam = " + c_CAM_ID + ". FMV = " + c_FMV_ID + ". abeY = " + abeY + ".";
 					return true;	
 				}
@@ -2013,27 +2013,27 @@ split
 	
 	if (old.EN_LEVEL_ID == 0 && old.EN_PATH_ID == 1 && old.EN_CAM_ID == 1 && current.EN_LEVEL_ID == 0 && current.EN_PATH_ID == 1 && current.EN_CAM_ID == 12){ // ENGLISH
 		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
+		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "English";
 	} else if (old.ES_LEVEL_ID == 0 && old.ES_PATH_ID == 1 && old.ES_CAM_ID == 1 && current.ES_LEVEL_ID == 0 && current.ES_PATH_ID == 1 && current.ES_CAM_ID == 12){ // SPANISH
 		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
+		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "Spanish";
 	} else if (old.FR_LEVEL_ID == 0 && old.FR_PATH_ID == 1 && old.FR_CAM_ID == 1 && current.FR_LEVEL_ID == 0 && current.FR_PATH_ID == 1 && current.FR_CAM_ID == 12){ // FRENCH
 		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
+		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "French";
 	} else if (old.FRs_LEVEL_ID == 0 && old.FRs_PATH_ID == 1 && old.FRs_CAM_ID == 1 && current.FRs_LEVEL_ID == 0 && current.FRs_PATH_ID == 1 && current.FRs_CAM_ID == 12){ // FRENCH STEAM
 		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
+		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "French Steam";
 	} else if (old.IT_LEVEL_ID == 0 && old.IT_PATH_ID == 1 && old.IT_CAM_ID == 1 && current.IT_LEVEL_ID == 0 && current.IT_PATH_ID == 1 && current.IT_CAM_ID == 12){ // ITALIAN
 		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
+		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "Italian";
 	} else if (old.DE_LEVEL_ID == 0 && old.DE_PATH_ID == 1 && old.DE_CAM_ID == 1 && current.DE_LEVEL_ID == 0 && current.DE_PATH_ID == 1 && current.DE_CAM_ID == 12){ // GERMAN
 		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentTime;
+		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "German";
 	}
 	
