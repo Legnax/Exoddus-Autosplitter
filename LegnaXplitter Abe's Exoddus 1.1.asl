@@ -69,7 +69,7 @@ state("Exoddus", "1.7.3") // EVERY LANGUAGE!!
 startup
 {
 	settings.Add("Version", true, "Official Version 1.7.3 (July 10th 2020) - LegnaX#7777 - CHANGELOG");
-	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.\n- Fixed a faulty split on Mudomo and Mudanchee (vaults).");
+	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.\n- Fixed several faulty splits on Mudomo and Mudanchee (vaults).");
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout.");
@@ -805,6 +805,7 @@ start
 		vars.MillisecondsPaused = 0;
 		vars.AccumulatedPenaltyTime = 0;	
 		areWeStartingOrNot = false;	
+		vars.Terminal2Split = false;
 		return true;
 	}
 }
