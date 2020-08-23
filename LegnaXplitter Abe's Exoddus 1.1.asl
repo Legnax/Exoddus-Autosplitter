@@ -1,8 +1,8 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically. It can be outputted selecting "LangDetected" through ASL Var Viewer.
-//  Created by LegnaX. 10 July 2020.
+//  Created by LegnaX. 23 August 2020.
 
-state("Exoddus", "1.7.3") // EVERY LANGUAGE!!
+state("Exoddus", "1.7.4") // EVERY LANGUAGE!!
 {	
 	// ENGLISH!!
 	byte EN_LEVEL_ID : 0x1C3030;
@@ -68,8 +68,8 @@ state("Exoddus", "1.7.3") // EVERY LANGUAGE!!
 
 startup
 {
-	settings.Add("Version", true, "Official Version 1.7.3 (July 10th 2020) - LegnaX#7777 - CHANGELOG");
-	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.\n- Fixed several faulty splits on Mudomo and Mudanchee (vaults).");
+	settings.Add("Version", true, "Official Version 1.7.4 (August 23rd 2020) - LegnaX#7777 - CHANGELOG");
+	settings.SetToolTip("Version", "-- CHANGELOG --\n- Added Individual levels! They will probably be broken though... let's hope they aren't!\n- Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.\n- Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.\n- Added GNFrame as the current frames of the run (excluding pause times). Cleaned some of the code.\n- Fixed an issue with splitting again after dying on FeeCo Save File 2.\n- Fixed several faulty splits on Mudomo and Mudanchee (vaults).\n- Renamed the categories: NLG is now NMG (No Major Glitches).");
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
 	settings.Add("version3", true, "Add additional Real Time timer on layout.");
@@ -2011,32 +2011,39 @@ split
 	}	
 	
 	// RESTART ZONE + LANG DETECTION (very cool)
+	int ol = 0;
+	int op = 1;
+	int oc = 1;
 	
-	if (old.EN_LEVEL_ID == 0 && old.EN_PATH_ID == 1 && old.EN_CAM_ID == 1 && current.EN_LEVEL_ID == 0 && current.EN_PATH_ID == 1 && current.EN_CAM_ID == 12){ // ENGLISH
+	int nl = 0;
+	int np = 1;
+	int nc = 12;
+	if (old.EN_LEVEL_ID == ol && old.EN_PATH_ID == op && old.EN_CAM_ID == oc && current.EN_LEVEL_ID == nl && current.EN_PATH_ID == np && current.EN_CAM_ID == nc){ // ENGLISH
 		vars.ResetStatus = 1;	
 		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "English";
-	} else if (old.ES_LEVEL_ID == 0 && old.ES_PATH_ID == 1 && old.ES_CAM_ID == 1 && current.ES_LEVEL_ID == 0 && current.ES_PATH_ID == 1 && current.ES_CAM_ID == 12){ // SPANISH
+	} else if (old.ES_LEVEL_ID == ol && old.ES_PATH_ID == op && old.ES_CAM_ID == oc && current.ES_LEVEL_ID == nl && current.ES_PATH_ID == np && current.ES_CAM_ID == nc){ // SPANISH
 		vars.ResetStatus = 1;	
 		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "Spanish";
-	} else if (old.FR_LEVEL_ID == 0 && old.FR_PATH_ID == 1 && old.FR_CAM_ID == 1 && current.FR_LEVEL_ID == 0 && current.FR_PATH_ID == 1 && current.FR_CAM_ID == 12){ // FRENCH
+	} else if (old.FR_LEVEL_ID == ol && old.FR_PATH_ID == op && old.FR_CAM_ID == oc && current.FR_LEVEL_ID == nl && current.FR_PATH_ID == np && current.FR_CAM_ID == nc){ // FRENCH
 		vars.ResetStatus = 1;	
 		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "French";
-	} else if (old.FRs_LEVEL_ID == 0 && old.FRs_PATH_ID == 1 && old.FRs_CAM_ID == 1 && current.FRs_LEVEL_ID == 0 && current.FRs_PATH_ID == 1 && current.FRs_CAM_ID == 12){ // FRENCH STEAM
+	} else if (old.FRs_LEVEL_ID == ol && old.FRs_PATH_ID == op && old.FRs_CAM_ID == oc && current.FRs_LEVEL_ID == nl && current.FRs_PATH_ID == np && current.FRs_CAM_ID == nc){ // FRENCH STEAM
 		vars.ResetStatus = 1;	
 		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "French Steam";
-	} else if (old.IT_LEVEL_ID == 0 && old.IT_PATH_ID == 1 && old.IT_CAM_ID == 1 && current.IT_LEVEL_ID == 0 && current.IT_PATH_ID == 1 && current.IT_CAM_ID == 12){ // ITALIAN
+	} else if (old.IT_LEVEL_ID == ol && old.IT_PATH_ID == op && old.IT_CAM_ID == oc && current.IT_LEVEL_ID == nl && current.IT_PATH_ID == np && current.IT_CAM_ID == nc){ // ITALIAN
 		vars.ResetStatus = 1;	
 		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "Italian";
-	} else if (old.DE_LEVEL_ID == 0 && old.DE_PATH_ID == 1 && old.DE_CAM_ID == 1 && current.DE_LEVEL_ID == 0 && current.DE_PATH_ID == 1 && current.DE_CAM_ID == 12){ // GERMAN
+	} else if (old.DE_LEVEL_ID == ol && old.DE_PATH_ID == op && old.DE_CAM_ID == oc && current.DE_LEVEL_ID == nl && current.DE_PATH_ID == np && current.DE_CAM_ID == nc){ // GERMAN
 		vars.ResetStatus = 1;	
 		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
 		vars.LangDetected = "German";
 	}
+	
 	
 	// --------------------------------------------
 	
