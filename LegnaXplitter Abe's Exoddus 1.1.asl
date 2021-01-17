@@ -1,16 +1,19 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
 //  Language should be detected automatically by looking for the localised "are you sure you want to quit" string.
-//  Created by LegnaX. 14 January 2021.
+//  Created by LegnaX. 17 January 2021.
 
-state("Exoddus") {}
-state("AliveExeAE") {}
-state("AliveExe") {}
+ // Added this so the ASL Var Viewer has at least one opcode loaded by default (even if it's unused). 
+state("Exoddus", "default") {byte use_Variables_option_instead  : 0x1C3030;}
+
+state("AliveExeAE", "default") {byte use_Variables_option_instead : 0x1C3030;}
+
+state("AliveExe", "default") {byte use_Variables_option_instead : 0x1C3030;}
 
 startup
 {
 	print("+startup");
 
-	settings.Add("Version", true, "Official Version 2.0.0 (Jan 14th 2021) - LegnaX#7777 - CHANGELOG");
+	settings.Add("Version", true, "Official Version 2.0.1 (Jan 17th 2021) - LegnaX#7777 - CHANGELOG");
 	settings.SetToolTip("Version", 
 	@"########################################## CHANGELOG ########################################## 
 -Added Individual level support!
@@ -21,7 +24,8 @@ startup
 -Fixed several faulty splits on Mudomo and Mudanchee (vaults).
 -Renamed the categories: NLG is now NMG (No Major Glitches).
 -Fixed a visual glitch with the IGT and added new condition to split on Executive Office - Entry and Executive Office - Aslik (for 100%, Max Cas and 50/50 categories).
--Completely revamped the init system (thanks to Paul) and added support to the Relive project (also made by Paul). paul#2754 - paulsapps.com"
+-Completely revamped the init system (thanks to Paul) and added support to the Relive project (also made by Paul). paul#2754 - paulsapps.com
+-Fixed a problem with the ASL Var Viewer. It should let you choose the variables correctly now (found by TopTheGamer and MarkTheW0lf)."
 );
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
@@ -110,9 +114,20 @@ startup
 
 init
 {	
+	
+	vars.You_can_show_the_following_variables_on_runs = "Ahh, I see!";
+	vars.version = "NOT DETECTED YET! Start a new game.";
+	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
+	vars.REAL_TIME = "Real time will be displayed here";
+	vars.LOADLESS_TIME = "Loadless time will be displayed here";
+	vars.LOG_LastSplit = "No split yet. Game version: " + vars.version;
+	vars.LOG_CurrentRTA = "[00:00:00.000]";
+	vars.____________________________________ = "Ignore this.";
+	vars.You_can_NOT_show_the_following_variables_on_runs = "Only the 3 above ones can be used.";
 
 // ###################################### FROM HERE TO LINE 290 IS PAUL'S BLACK MAGIC ###############################################
 	print("+init");
+	
 
 	// Detect which version/language of the game we are running, load the entire code section to an array
 	print("Reading " +  modules.First().ModuleMemorySize.ToString() + " bytes from the first module base address");
@@ -120,7 +135,7 @@ init
 	string converted = Encoding.UTF8.GetString(moduleMemory, 0, moduleMemory.Length);
 	print("Read code section as a string");
 
-	vars.version = "";
+	version = "default";
 
 	vars.SigScan = (Func<Process, int, string, IntPtr>)((proc, offset, signature) => {
         var target = new SigScanTarget(offset, signature);
@@ -292,14 +307,7 @@ init
 	}
 // ###################################### FROM LINE 113 TO THIS LINE IS PAUL'S BLACK MAGIC ###############################################
 
-	vars.You_can_show_the_following_variables_on_runs = "Ahh, I see!";
-	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
-	vars.REAL_TIME = "Real time will be displayed here";
-	vars.LOADLESS_TIME = "Loadless time will be displayed here";
-	vars.LOG_LastSplit = "No split yet. Game version: " + vars.version;
-	vars.LOG_CurrentRTA = "[00:00:00.000]";
-	vars.____________________________________ = "Ignore this.";
-	vars.You_can_NOT_show_the_following_variables_on_runs = "Only the 3 above ones can be used.";
+	
 	vars.DEBUG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
 	vars.DEBUG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.GNFrame = 0;
