@@ -1,19 +1,18 @@
 //  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
-//  Language should be detected automatically by looking for the localised "are you sure you want to quit" string.
-//  Created by LegnaX. 17 January 2021.
+//  Language should be detected automatically by looking for the localised "are you sure you want to quit" string (thanks to paulsapp). 
+//  Created by LegnaX. 26 May 2022.
 
  // Added this so the ASL Var Viewer has at least one opcode loaded by default (even if it's unused). 
 state("Exoddus", "default") {byte use_Variables_option_instead  : 0x1C3030;}
-
 state("AliveExeAE", "default") {byte use_Variables_option_instead : 0x1C3030;}
-
 state("AliveExe", "default") {byte use_Variables_option_instead : 0x1C3030;}
+state("relive", "default") {byte use_Variables_option_instead : 0x1C3030;}
 
 startup
 {
 	print("+startup");
 
-	settings.Add("Version", true, "Official Version 2.0.1 (Jan 17th 2021) - LegnaX#7777 - CHANGELOG");
+	settings.Add("Version", true, "Official Version 2.1 (May 26th 2022) - LegnaX#7777 - CHANGELOG");
 	settings.SetToolTip("Version", 
 	@"########################################## CHANGELOG ########################################## 
 -Added Individual level support!
@@ -25,7 +24,8 @@ startup
 -Renamed the categories: NLG is now NMG (No Major Glitches).
 -Fixed a visual glitch with the IGT and added new condition to split on Executive Office - Entry and Executive Office - Aslik (for 100%, Max Cas and 50/50 categories).
 -Completely revamped the init system (thanks to Paul) and added support to the Relive project (also made by Paul). paul#2754 - paulsapps.com
--Fixed a problem with the ASL Var Viewer. It should let you choose the variables correctly now (found by TopTheGamer and MarkTheW0lf)."
+-Fixed a problem with the ASL Var Viewer. It should let you choose the variables correctly now (found by TopTheGamer and MarkTheW0lf).
+-[May 26th 2022] Fixed compatibility with relive. It should work now (thanks to mouzedrift)."
 );
 	
 	settings.Add("version2", true, "Use Game Time as timer (will be Loadless).");
