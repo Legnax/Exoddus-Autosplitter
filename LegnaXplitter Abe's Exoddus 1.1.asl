@@ -122,8 +122,10 @@ init
 	vars.LOADLESS_TIME = "Loadless time will be displayed here";
 	vars.LOG_LastSplit = "No split yet. Game version: " + vars.version;
 	vars.LOG_CurrentRTA = "[00:00:00.000]";
+    	vars.Dead_Mudokons  = "Counter for amount of dead mudokons." ; 
+    	vars.Saved_Mudokons = "Counter for amount of saved mudokons.";
 	vars.____________________________________ = "Ignore this.";
-	vars.You_can_NOT_show_the_following_variables_on_runs = "Only the 3 above ones can be used.";
+	vars.You_can_NOT_show_the_following_variables_on_runs = "Only the 7 above ones can be used.";
 
 // ###################################### FROM HERE TO LINE 290 IS PAUL'S BLACK MAGIC ###############################################
 	print("+init");
@@ -184,6 +186,8 @@ init
 					new MemoryWatcher<int>(new DeepPointer(memory.ReadPointer(scan + (5*gamePointerSize)))) { Name = "gnFrame" },
 					new MemoryWatcher<short>(new DeepPointer(memory.ReadPointer(scan + (6*gamePointerSize)), new int[] {memory.ReadValue<int>(scan + (7*gamePointerSize))})) { Name = "abeY" },
 					new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (8*gamePointerSize)))) { Name = "IsPaused" },
+					new MemoryWatcher<ushort>(new DeepPointer(0x1289918)) { Name = "Dead_Mudokuns" }, 
+                			new MemoryWatcher<ushort>(new DeepPointer(0x1289914)) { Name = "Saved_Mudokuns" }, 
 				};
 			}
 			break;
@@ -204,6 +208,8 @@ init
 				new MemoryWatcher<int>(new DeepPointer(0x1C1B84)) { Name = "gnFrame" },
 				new MemoryWatcher<short>(new DeepPointer(0x1C1230, new int[] {0xBE})) { Name = "abeY" },
 				new MemoryWatcher<byte>(new DeepPointer(0x1C9304)) { Name = "IsPaused" },
+                		new MemoryWatcher<ushort>(new DeepPointer(0x1C1BC0)) { Name = "Dead_Mudokuns" }, 
+                		new MemoryWatcher<ushort>(new DeepPointer(0x1C1BC2)) { Name = "Saved_Mudokuns" }, 
 			};
 			break;
 		}
@@ -222,6 +228,8 @@ init
 				new MemoryWatcher<int>(new DeepPointer(0x1C1F14)) { Name = "gnFrame" },
 				new MemoryWatcher<short>(new DeepPointer(0x1C1EF8, new int[] {0xBE})) { Name = "abeY" },
 				new MemoryWatcher<byte>(new DeepPointer(0x1C9694)) { Name = "IsPaused" },
+				new MemoryWatcher<ushort>(new DeepPointer(0x1C1F50)) { Name = "Dead_Mudokuns" }, 
+                		new MemoryWatcher<ushort>(new DeepPointer(0x1C1F52)) { Name = "Saved_Mudokuns" }, 
 			};
 			break;
 		}
@@ -242,6 +250,8 @@ init
 					new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
 					new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
 					new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
+					new MemoryWatcher<ushort>(new DeepPointer(0x1C2498)) { Name = "Dead_Mudokuns" }, 
+                			new MemoryWatcher<ushort>(new DeepPointer(0x1C249A)) { Name = "Saved_Mudokuns" },
 				};
 			}
 			else
@@ -258,6 +268,8 @@ init
 					new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
 					new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
 					new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
+					new MemoryWatcher<ushort>(new DeepPointer(0x1C2498)) { Name = "Dead_Mudokuns" }, 
+                			new MemoryWatcher<ushort>(new DeepPointer(0x1C249A)) { Name = "Saved_Mudokuns" },
 				};
 			}
 			break;
@@ -277,6 +289,8 @@ init
 				new MemoryWatcher<int>(new DeepPointer(0x1C255C)) { Name = "gnFrame" },
 				new MemoryWatcher<short>(new DeepPointer(0x1C2540, new int[] {0xBE})) { Name = "abeY" },
 				new MemoryWatcher<byte>(new DeepPointer(0x1C9CDC)) { Name = "IsPaused" },
+                		new MemoryWatcher<ushort>(new DeepPointer(0x1C2598)) { Name = "Dead_Mudokuns" }, 
+                		new MemoryWatcher<ushort>(new DeepPointer(0x1C259A)) { Name = "Saved_Mudokuns" }, 
 			};
 			break;
 		}
@@ -295,6 +309,8 @@ init
 				new MemoryWatcher<int>(new DeepPointer(0x1C22C4)) { Name = "gnFrame" },
 				new MemoryWatcher<short>(new DeepPointer(0x1C22A8, new int[] {0xBE})) { Name = "abeY" },
 				new MemoryWatcher<byte>(new DeepPointer(0x1C9A44)) { Name = "IsPaused" },
+				new MemoryWatcher<ushort>(new DeepPointer(0x1C2300)) { Name = "Dead_Mudokuns" }, 
+                		new MemoryWatcher<ushort>(new DeepPointer(0x1C2302)) { Name = "Saved_Mudokuns" },
 			};
 			break;
 		}
@@ -347,6 +363,8 @@ init
 update
 {
     vars.watchers.UpdateAll(game);
+    vars.Dead_Mudokons = vars.watchers["Dead_Mudokuns"].Current;
+    vars.Saved_Mudokons = vars.watchers["Saved_Mudokuns"].Current;
 /* 
 	print("GnFrame = " + vars.watchers["gnFrame"].Current.ToString());
 	print("LEVEL_ID = " + vars.watchers["LEVEL_ID"].Current.ToString());
