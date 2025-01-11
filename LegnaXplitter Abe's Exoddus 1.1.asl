@@ -229,37 +229,18 @@ init
 		pos = converted.IndexOf("Voulez-vous vraiment quitter?"); // Only check the ascii chars
 		if (pos != -1) 
 		{
-			if (modules.First().ModuleMemorySize == 8790016)
-			{	
-				print("French Buffer match: " + converted.Substring(pos, 50));
-				vars.version = "French";
-				vars.watchers = new MemoryWatcherList
-				{
-					new MemoryWatcher<byte>(new DeepPointer(0x1C3908)) { Name = "LEVEL_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C3914)) { Name = "PATH_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C3916)) { Name = "CAM_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C3910)) { Name = "FMV_ID" },
-					new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
-					new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
-				};
-			}
-			else
+			print("French Buffer match: " + converted.Substring(pos, 50));
+			vars.version = "French";
+			vars.watchers = new MemoryWatcherList
 			{
-				// Else it must be the steam version - seems to work when tested by UltraStars3000
-				print("FrenchSteam Buffer match: " + converted.Substring(pos, 50));
-				vars.version = "FrenchSteam";
-				vars.watchers = new MemoryWatcherList
-				{
-					new MemoryWatcher<byte>(new DeepPointer(0x1C3908)) { Name = "LEVEL_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C390A)) { Name = "PATH_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C390C)) { Name = "CAM_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C391A)) { Name = "FMV_ID" },
-					new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
-					new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
-					new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
-				};
-			}
+				new MemoryWatcher<byte>(new DeepPointer(0x1C3908)) { Name = "LEVEL_ID" },
+				new MemoryWatcher<byte>(new DeepPointer(0x1C390A)) { Name = "PATH_ID" },
+				new MemoryWatcher<byte>(new DeepPointer(0x1C390C)) { Name = "CAM_ID" },
+				new MemoryWatcher<byte>(new DeepPointer(0x1C391A)) { Name = "FMV_ID" },
+				new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
+				new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
+				new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
+			};
 			break;
 		}
 		
@@ -307,7 +288,18 @@ init
 	}
 // ###################################### FROM LINE 113 TO THIS LINE IS PAUL'S BLACK MAGIC ###############################################
 
-	
+	if (settings["100Rate"]){
+		refreshRate = 100;
+	} else if (settings["50Rate"]){
+		refreshRate = 50;
+	} else if (settings["40Rate"]){
+		refreshRate = 40;
+	} else if (settings["10Rate"]){
+		refreshRate = 10;
+	} else {
+		refreshRate = 30;	
+	}
+
 	vars.DEBUG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
 	vars.DEBUG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.GNFrame = 0;
@@ -340,6 +332,8 @@ init
 	vars.GNFrameWithoutAddedFrames = 0;
 	vars.Terminal2Split = false; // Used to avoid extra splits on Terminal 2 after the second and third save file.
 
+	vars.isBeginStart = false;
+
 	print("-init");
 } 
 
@@ -360,222 +354,97 @@ update
 
 start
 {	
-	bool areWeStartingOrNot = false;
+	bool startingWithMines = false;
 	vars.ILid = -1; // Restarting IL id
 	vars.ILWaitTimer = false;
-	// Refresh rate
-	if (settings["100Rate"]){
-		refreshRate = 100;
-	} else if (settings["50Rate"]){
-		refreshRate = 50;
-	} else if (settings["40Rate"]){
-		refreshRate = 40;
-	} else if (settings["10Rate"]){
-		refreshRate = 10;
-	} else {
-		refreshRate = 30;	
+
+	// Checking for the Backstory screen, and resetting the value once back in the Main screen
+	// Might need to be moved to 'update' if the ASL struggles to start full runs. TBD
+	if (vars.watchers["LEVEL_ID"].Current == 0) {
+		if (vars.watchers["CAM_ID"].Current == 12) {
+			vars.isBeginStart = true;
+		} else if (vars.watchers["CAM_ID"].Current == 1) {
+			vars.isBeginStart = false;
+		}
+	}
+
+	// Mines (for both IL and full runs)
+	if (vars.watchers["LEVEL_ID"].Old == 0 && vars.watchers["LEVEL_ID"].Current == 1 && vars.isBeginStart) {
+		startingWithMines = true;
+		if (settings["UsingIL"]) {
+			vars.ILid = 0;
+		}
+	}
+
+	if (setting["UsingIL"]) {
+		// Necrum
+		if (vars.watchers["LEVEL_ID"].Old == 1 && vars.watchers["FMV_ID"].Old == 0 && vars.watchers["FMV_ID"].Current == 232) {
+			vars.ILid = 1;
+		}
+
+		// Mudomo
+		if (vars.watchers["LEVEL_ID"].Old == 2 && vars.watchers["PATH_ID"].Old == 5 && vars.watchers["CAM_ID"].Old == 9
+		&& vars.watchers["LEVEL_ID"].Current == 3 && vars.watchers["PATH_ID"].Current == 1 && vars.watchers["CAM_ID"].Current == 1) {
+			vars.ILid = 2;
+		}
+
+		// Mudanchee
+		if (vars.watchers["LEVEL_ID"].Old == 2 && vars.watchers["PATH_ID"].Old == 5 && vars.watchers["CAM_ID"].Old == 1
+		&& vars.watchers["LEVEL_ID"].Current == 4 && vars.watchers["PATH_ID"].Current == 6 && vars.watchers["CAM_ID"].Current == 23) {
+			vars.ILid = 3;
+		}
+
+		// FeeCo
+		if (vars.watchers["LEVEL_ID"].Old == 2 && vars.watchers["PATH_ID"].Old == 3 && vars.watchers["CAM_ID"].Old == 18
+		&& vars.watchers["LEVEL_ID"].Current == 5 && vars.watchers["PATH_ID"].Current == 1 && vars.watchers["CAM_ID"].Current == 1) {
+			vars.ILid = 4;
+		}
+
+		// Bonewerkz
+		if (vars.watchers["LEVEL_ID"].Old == 5 && vars.watchers["PATH_ID"].Old == 4 && vars.watchers["CAM_ID"].Old == 14
+		&& vars.watchers["LEVEL_ID"].Current == 8 && vars.watchers["PATH_ID"].Current == 1 && vars.watchers["CAM_ID"].Current == 18) {
+			vars.ILid = 5;
+		}
+
+		// Slig Barracks
+		if (vars.watchers["LEVEL_ID"].Old == 5 && vars.watchers["PATH_ID"].Old == 3 && vars.watchers["CAM_ID"].Old == 14
+		&& vars.watchers["LEVEL_ID"].Current == 6 && vars.watchers["PATH_ID"].Current == 1 && vars.watchers["CAM_ID"].Current == 3) {
+			vars.ILid = 6;
+		}
+
+		// Hub 1
+		if (vars.watchers["LEVEL_ID"].Old == 5 && vars.watchers["PATH_ID"].Old == 5 && vars.watchers["CAM_ID"].Old == 14
+		&& vars.watchers["LEVEL_ID"].Current == 9 && vars.watchers["PATH_ID"].Current == 16 && vars.watchers["CAM_ID"].Current == 1) {
+			vars.ILid = 7;
+		}
+
+		// Hub 2
+		if (vars.watchers["LEVEL_ID"].Old == 9 && vars.watchers["PATH_ID"].Old == 23
+		&& vars.watchers["LEVEL_ID"].Current == 9 && vars.watchers["PATH_ID"].Current == 24) {
+			vars.ILid = 8;
+		}
+
+		// Hub 3
+		if (vars.watchers["LEVEL_ID"].Old == 9 && vars.watchers["PATH_ID"].Old == 24
+		&& vars.watchers["LEVEL_ID"].Current == 9 && vars.watchers["PATH_ID"].Current == 25) {
+			vars.ILid = 9;
+		}
+
+		// Soulstorm Boiler
+		if (vars.watchers["LEVEL_ID"].Old == 9 && vars.watchers["PATH_ID"].Old == 25
+		&& vars.watchers["LEVEL_ID"].Current == 10 && vars.watchers["CAM_ID"].Current == 1) {
+			vars.ILid = 10;
+		}
 	}
 	
-	
-	// MINES (used for main splits OR ILs)
-	int ol = 0;
-	int	op = 0; // OLD PATH
-	int oc = 13;
-	int cl = 1;
-	int	cp = 0; // CURRENT PATH
-	int cc = 4;
-	if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["CAM_ID"].Current == cc){
+	if (startingWithMines || vars.ILid >= 0){
 		vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-		areWeStartingOrNot = true;
-	}
-	
-	if (areWeStartingOrNot && settings["UsingIL"]){
-		vars.ILid = 0; // Mines IL
-	}
-
-	// --------------------------------------------------------------------------------------------------------------------
-	
-	if (settings["UsingIL"]){
-		
-	// NECRUM (used for ILs)
-		ol = 1; // OLD LEVEL
-		op = 6; // OLD PATH
-		oc = 7; // OLD CAMERA
-		// cl = 2; // CURRENT LEVEL
-		// cp = 2; // CURRENT PATH
-		// cc = 1; // CURRENT CAMERA
-		int of = 0;
-		int cf = 232;
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["FMV_ID"].Old == of && vars.watchers["FMV_ID"].Current == cf){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 1; // Necrum IL
-		}
-
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// MUDOMO (used for ILs)
-		ol = 2; // OLD LEVEL
-		op = 5; // OLD PATH
-		oc = 9; // OLD CAMERA
-		cl = 3; // CURRENT LEVEL
-		cp = 1; // CURRENT PATH
-		cc = 1; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 2; // Mudomo IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// MUDANCHEE (used for ILs)
-		ol = 2; // OLD LEVEL
-		op = 5; // OLD PATH
-		oc = 1; // OLD CAMERA
-		cl = 4; // CURRENT LEVEL
-		cp = 6; // CURRENT PATH
-		cc = 23; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 3; // Mudanchee IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// FEECO (used for ILs)
-		ol = 2; // OLD LEVEL
-		op = 3; // OLD PATH
-		oc = 18; // OLD CAMERA
-		cl = 5; // CURRENT LEVEL
-		cp = 1; // CURRENT PATH
-		cc = 1; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 4; // FeeCo IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// BONEWERKZ (used for ILs)
-		ol = 5; // OLD LEVEL
-		op = 4; // OLD PATH
-		oc = 14; // OLD CAMERA
-		cl = 8; // CURRENT LEVEL
-		cp = 1; // CURRENT PATH
-		cc = 18; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 5; // Bonewerkz IL
-		}
-
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// SLIG BARRACKS (used for ILs)
-		ol = 5; // OLD LEVEL
-		op = 3; // OLD PATH
-		oc = 14; // OLD CAMERA
-		cl = 6; // CURRENT LEVEL
-		cp = 1; // CURRENT PATH
-		cc = 3; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 6; // Slig Barracks IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// HUB 1 (used for ILs)
-		ol = 5; // OLD LEVEL
-		op = 5; // OLD PATH
-		oc = 14; // OLD CAMERA
-		cl = 9; // CURRENT LEVEL
-		cp = 16; // CURRENT PATH
-		cc = 1; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 7; // Hub 1 IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// HUB 2 (used for ILs)
-		ol = 9; // OLD LEVEL
-		op = 23; // OLD PATH
-		oc = 1; // OLD CAMERA
-		cl = 9; // CURRENT LEVEL
-		cp = 24; // CURRENT PATH
-		cc = 1; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 8; // Hub 2 IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// HUB 3 (used for ILs)
-		ol = 9; // OLD LEVEL
-		op = 24; // OLD PATH
-		oc = 1; // OLD CAMERA
-		cl = 9; // CURRENT LEVEL
-		cp = 25; // CURRENT PATH
-		cc = 1; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 9; // Hub 3 IL
-		}
-	
-		// --------------------------------------------------------------------------------------------------------------------
-		
-		
-		
-		// SOULSTORM BOILER (used for ILs)
-		ol = 9; // OLD LEVEL
-		op = 25; // OLD PATH
-		oc = 1; // OLD CAMERA
-		cl = 10; // CURRENT LEVEL
-		cp = 1; // CURRENT PATH
-		cc = 1; // CURRENT CAMERA
-		if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == cl && vars.watchers["PATH_ID"].Current == cp && vars.watchers["CAM_ID"].Current == cc){
-			vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-			areWeStartingOrNot = true;
-			vars.ILid = 10; // Soulstorm Boiler IL
-		}
-		
-		// --------------------------------------------------------------------------------------------------------------------
-	}
-	
-	
-	if (areWeStartingOrNot){
 		vars.ResetStatus = 0;		
 		vars.Epoch = 0;
 		vars.PauseStartTime = -1;	
 		vars.MillisecondsPaused = 0;
 		vars.AccumulatedPenaltyTime = 0;	
-		areWeStartingOrNot = false;	
+		startingWithMines = false;	
 		vars.Terminal2Split = false;
 		return true;
 	}
