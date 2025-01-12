@@ -376,7 +376,7 @@ start
 		}
 	}
 
-	if (setting["UsingIL"]) {
+	if (settings["UsingIL"]) {
 		// Necrum
 		if (vars.watchers["LEVEL_ID"].Old == 1 && vars.watchers["FMV_ID"].Old == 0 && vars.watchers["FMV_ID"].Current == 232) {
 			vars.ILid = 1;
@@ -437,9 +437,8 @@ start
 		}
 	}
 	
-	if (startingWithMines || vars.ILid >= 0){
-		vars.StartgnFrame = vars.watchers["gnFrame"].Current;
-		vars.ResetStatus = 0;		
+	if (startingWithMines || vars.ILid >= 0) {
+		vars.StartgnFrame = vars.watchers["gnFrame"].Current;		
 		vars.Epoch = 0;
 		vars.PauseStartTime = -1;	
 		vars.MillisecondsPaused = 0;
@@ -456,9 +455,9 @@ exit
 
 reset
 {
-	if (vars.ResetStatus == 2){ // Start on main menu
-		print("Do restart");
-		vars.ResetStatus = 0;		
+	// Upon reaching the Backstory screen
+	if (vars.watchers["LEVEL_ID"].Current == 0 && vars.watchers["CAM_ID"].Old == 1 && vars.watchers["CAM_ID"].Current == 12) {
+		print("Do restart");	
 		vars.StartgnFrame = -1;	
 		vars.Epoch = 0;
 		vars.PauseStartTime = -1;	
@@ -468,105 +467,75 @@ reset
 		vars.REAL_TIME = "00:00:00.000";		
 		vars.ILid = -1; // Restarting IL id
 		vars.ILWaitTimer = false;
-		return true;		
-	} else {
-		return false;
+		return true;	
+	}
+}
+
+gameTime
+{
+	TimeSpan gameTimeTimeSpan;
+
+	// Store the current gnFrame upon entering idle state (loading a save during ILs)
+	if (vars.ILWaitTimer && vars.ILWaitFrame == -1) {
+		vars.ILWaitFrame = vars.watchers["gnFrame"].Current;
+	}
+
+	// The ASL must not be in a idle state
+	if (!vars.ILWaitTimer) {
+		// The statements' order matter as there are behavior priorities to be taken in consideration
+		// We first update the startGNFrame and the penality time
+
+		// When QuikLoading or Restarting Path
+		if (vars.watchers["gnFrame"].Old > vars.watchers["gnFrame"].Current) {
+			vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((vars.watchers["gnFrame"].Old - vars.StartgnFrame) * 1000 / vars.fps);
+			vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
+			vars.StartgnFrame = vars.watchers["gnFrame"].Current - 1;
+		}
+
+		// When leaving idle state 
+		if (vars.ILWaitFrame > -1) {
+			vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((vars.ILWaitFrame - vars.StartgnFrame) * 1000 / vars.fps);
+			vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
+			vars.StartgnFrame = vars.watchers["gnFrame"].Current - 1;	
+			vars.ILWaitFrame = -1;				
+		}
+
+		// When using level skip code(?) (fixing gnFrame)
+		// This doesn't work in the case the save loaded upon level skip has a smaller gnFrame than the current one
+		// Leaving it as it is just in case
+		if (vars.watchers["gnFrame"].Old + 60 < vars.watchers["gnFrame"].Current) {
+			vars.StartgnFrame = vars.StartgnFrame + (vars.watchers["gnFrame"].Current - vars.watchers["gnFrame"].Old);
+		}
+
+		if (vars.watchers["IsPaused"].Current == 1) { // if the game is paused...
+			vars.Epoch = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000;
+			if (vars.PauseStartTime == -1) { // Paused for the first time.
+				vars.PauseStartTime = vars.Epoch;
+			}		
+		} else {				
+			if (vars.PauseStartTime > 0) { // Unpaused for the first time.
+				vars.MillisecondsPaused = vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime);
+				vars.PauseStartTime = -1;
+			}			
+		}
+
+		vars.GNFrameWithoutAddedFrames = vars.watchers["gnFrame"].Current - vars.StartgnFrame;
+		vars.REAL_TIME = TimeSpan.Parse(System.Convert.ToString(timer.CurrentTime.RealTime)).ToString(@"h\:mm\:ss\.fff");
+		if (vars.watchers["IsPaused"].Current == 1) { // if the game is paused...
+			gameTimeTimeSpan = TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime);
+		} else {
+			gameTimeTimeSpan = TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime);
+		}
+
+		vars.LOADLESS_TIME = gameTimeTimeSpan.ToString(@"h\:mm\:ss\.fff");
+		vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
+		return gameTimeTimeSpan;
 	}
 }
 
 isLoading
 {	
-	long c_gnFrame = -1;
-	long o_gnFrame = -1;
-	int IsPaused = -1;
-	
-	// Refresh rate
-	if (settings["100Rate"]){
-		refreshRate = 100;
-	} else if (settings["50Rate"]){
-		refreshRate = 50;
-	} else if (settings["40Rate"]){
-		refreshRate = 40;
-	} else if (settings["10Rate"]){
-		refreshRate = 10;
-	} else {
-		refreshRate = 30;	
-	}
-	
-	if (vars.version == ""){
-		// Not detected the game version yet
-		print("Unknown game - loading");
-		return true;
-	} else {
-		c_gnFrame = vars.watchers["gnFrame"].Current;
-		o_gnFrame = vars.watchers["gnFrame"].Old;
-		IsPaused = vars.watchers["IsPaused"].Current;			
-		
-		if (vars.ILWaitTimer){
-			if (vars.ILWaitFrame == -1){
-				vars.ILWaitFrame = c_gnFrame;
-			}
-			return true;
-		} else {
-			if (o_gnFrame > c_gnFrame){ // If we QuikLoaded, died or Restart Path...
-				vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((o_gnFrame - vars.StartgnFrame) * 1000 / vars.fps);
-				vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
-				vars.StartgnFrame = c_gnFrame - 1;
-			}
-			
-			if (vars.ILWaitFrame > -1){
-				vars.AccumulatedPenaltyTime = vars.AccumulatedPenaltyTime + ((vars.ILWaitFrame - vars.StartgnFrame) * 1000 / vars.fps);
-				vars.AccumulatedPenaltyTime = Convert.ToInt32(vars.AccumulatedPenaltyTime);
-				vars.StartgnFrame = c_gnFrame - 1;	
-				vars.ILWaitFrame = -1;				
-			}
-			
-			if (o_gnFrame + 60 < c_gnFrame) { // If we used the skip level code, we will fix the frames.
-				vars.StartgnFrame = vars.StartgnFrame + (c_gnFrame - o_gnFrame);
-			}
-			
-			if (IsPaused == 1 && vars.ILWaitTimer == false){ // if the game is paused...
-				vars.Epoch = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000;
-				if (vars.PauseStartTime == -1){ // Paused for the first time.
-					vars.PauseStartTime = vars.Epoch;
-				}		
-				
-			} else {				
-				if (vars.PauseStartTime > 0){ // Unpaused for the first time.
-					vars.MillisecondsPaused = vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime);
-					vars.PauseStartTime = -1;
-				}			
-			}
-			
-			vars.GNFrameWithoutAddedFrames = c_gnFrame - vars.StartgnFrame;
-			vars.GNFrame = c_gnFrame - vars.StartgnFrame + Convert.ToInt32(vars.AccumulatedPenaltyTime / 1000 * vars.fps);
-			
-			if (c_gnFrame > 0) {
-			    vars.REAL_TIME = TimeSpan.Parse(System.Convert.ToString(timer.CurrentTime.RealTime)).ToString(@"h\:mm\:ss\.fff");
-				
-				if (IsPaused == 1){ // if the game is paused...
-					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).ToString(@"h\:mm\:ss\.fff");
-					vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
-					if ((TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + (vars.Epoch - vars.PauseStartTime) + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
-						return true;
-					} else {
-						return false;
-					}
-				} else {
-					vars.LOADLESS_TIME = TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).ToString(@"h\:mm\:ss\.fff");
-					vars.REAL_TIME_AND_LOADLESS_TIME = "Real time = " + vars.REAL_TIME + " \nLoadless time = " + vars.LOADLESS_TIME;
-					if ((TimeSpan.FromMilliseconds((vars.GNFrameWithoutAddedFrames * 1000 / vars.fps) + vars.MillisecondsPaused + vars.AccumulatedPenaltyTime).TotalMilliseconds) < (timer.CurrentTime.GameTime.Value.TotalSeconds * 1000)){ // Is the ingame timer bigger than the gnFrame timer? We will pause it this frame.
-						return true;
-					} else {
-						return false;
-					}
-				}
-			} else {
-				return true; // :shrug: 
-			}
-		}
-	}
-	
+	return true;	
 }
 
 
@@ -1566,26 +1535,9 @@ split
 		}
 	}	
 	
-	// RESTART ZONE + LANG DETECTION (very cool)
-	int ol = 0;
-	int op = 1;
-	int oc = 1;
-	
-	int nl = 0;
-	int np = 1;
-	int nc = 12;
-	if (vars.watchers["LEVEL_ID"].Old == ol && vars.watchers["PATH_ID"].Old == op && vars.watchers["CAM_ID"].Old == oc && vars.watchers["LEVEL_ID"].Current == nl && vars.watchers["PATH_ID"].Current == np && vars.watchers["CAM_ID"].Current == nc){
-		vars.ResetStatus = 1;	
-		vars.LOG_LastSplit = "Reset (Main Menu) " + vars.LOG_CurrentRTA;
-	}
-	
 	// --------------------------------------------
 	
-// LOG TOOL FOR DEBUG. 	
-	if (vars.ResetStatus == 1) { // Needed at the end.
-		vars.ResetStatus = 2;
-	}
-	
+// LOG TOOL FOR DEBUG. 		
 	if (vars.countToMud > 0 && vars.countToMud <= 999){
 		vars.countToMud = vars.countToMud + 1;
 	} 
