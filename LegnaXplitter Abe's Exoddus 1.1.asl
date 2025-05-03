@@ -1,20 +1,23 @@
-//  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. 
+//  An autosplitter for Abe's Exoddus for PC: English / English GoG, Spanish, French / French Steam, German and Italian. Duckstation english SLUS_007.10.
 //  Language should be detected automatically by looking for the localised "are you sure you want to quit" string (thanks to paulsapp). 
-//  Created by LegnaX. Optimized by UltraStars3000. 12 Jan 2025.
+//  Created by LegnaX. Optimized by UltraStars3000. DuckStation support by NanobotZ. 12th Apr 2025.
 
  // Added this so the ASL Var Viewer has at least one opcode loaded by default (even if it's unused). 
 state("Exoddus", "default") {byte use_Variables_option_instead  : 0x1C3030;}
 state("AliveExeAE", "default") {byte use_Variables_option_instead : 0x1C3030;}
 state("AliveExe", "default") {byte use_Variables_option_instead : 0x1C3030;}
 state("relive", "default") {byte use_Variables_option_instead : 0x1C3030;}
+state("duckstation-qt-x64-ReleaseLTCG") { byte use_Variables_option_instead  : 0x1C3030;  }
+state("duckstation-nogui-x64-ReleaseLTCG") { byte use_Variables_option_instead  : 0x1C3030;  }
 
 startup
 {
 	print("+startup");
 
-	settings.Add("Version", true, "Official Version 3.0 (Jan 12th 2025) - LegnaX#7777 - CHANGELOG");
+	settings.Add("Version", true, "Official Version 3.1 (Apr 12th 2025) - LegnaX#7777 - CHANGELOG");
 	settings.SetToolTip("Version", 
 	@"########################################## CHANGELOG ########################################## 
+-(3.1) Added DuckStation support.
 -Added Individual level support!
 -Fixed a glitch with the autosplitter remembering the Loadless time from previous attempts.
 -Removed a leftover debug thing on Tunnel 1 split that was locking the timer in place.
@@ -110,184 +113,202 @@ startup
 	
 	settings.Add("boilerSplit", true, "Zulag 15 - Boiler (End game) - Splits when Abe enters on any portal.");
 
+	vars.duckstationProcessNames = new List<string> {
+		"duckstation-qt-x64-ReleaseLTCG",
+		"duckstation-nogui-x64-ReleaseLTCG",
+	};
+	vars.duckstation = false;
+
 	print("-startup");
 }
 
 init
 {	
-	
-	vars.You_can_show_the_following_variables_on_runs = "Ahh, I see!";
-	vars.version = "NOT DETECTED YET! Start a new game.";
-	vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
-	vars.REAL_TIME = "Real time will be displayed here";
-	vars.LOADLESS_TIME = "Loadless time will be displayed here";
-	vars.LOG_LastSplit = "No split yet. Game version: " + vars.version;
-	vars.LOG_CurrentRTA = "[00:00:00.000]";
-	vars.____________________________________ = "Ignore this.";
-	vars.You_can_NOT_show_the_following_variables_on_runs = "Only the 3 above ones can be used.";
-
-// ###################################### FROM HERE TO LINE 290 IS PAUL'S BLACK MAGIC ###############################################
 	print("+init");
+    
+	if (vars.duckstationProcessNames.Contains(game.ProcessName)) {
+        vars.duckstation = true;
+        vars.version = "DuckStation";
+        vars.baseRAMAddress = IntPtr.Zero;
+        vars.duckstationBaseRAMAddressFound = false;
+        vars.duckstationStopwatch = new Stopwatch();
+        vars.DUCKSTATION_ADDRESS_SEARCH_INTERVAL = 1000;
+    }
+    else {
+        vars.duckstation = false;
+        vars.You_can_show_the_following_variables_on_runs = "Ahh, I see!";
+        vars.version = "NOT DETECTED YET! Start a new game.";
+        vars.REAL_TIME_AND_LOADLESS_TIME = "(Use 2 rows) Both timers\nwill be displayed here";
+        vars.REAL_TIME = "Real time will be displayed here";
+        vars.LOADLESS_TIME = "Loadless time will be displayed here";
+        vars.LOG_LastSplit = "No split yet. Game version: " + vars.version;
+        vars.LOG_CurrentRTA = "[00:00:00.000]";
+        vars.____________________________________ = "Ignore this.";
+        vars.You_can_NOT_show_the_following_variables_on_runs = "Only the 3 above ones can be used.";
+
+// ###################################### FROM HERE TO LINE 311 IS PAUL'S BLACK MAGIC ###############################################
+
 	
 
-	// Detect which version/language of the game we are running, load the entire code section to an array
-	print("Reading " +  modules.First().ModuleMemorySize.ToString() + " bytes from the first module base address");
- 	var moduleMemory = memory.ReadBytes(modules.First().BaseAddress, modules.First().ModuleMemorySize);
-	string converted = Encoding.UTF8.GetString(moduleMemory, 0, moduleMemory.Length);
-	print("Read code section as a string");
+        // Detect which version/language of the game we are running, load the entire code section to an array
+        print("Reading " +  modules.First().ModuleMemorySize.ToString() + " bytes from the first module base address");
+        var moduleMemory = memory.ReadBytes(modules.First().BaseAddress, modules.First().ModuleMemorySize);
+        string converted = Encoding.UTF8.GetString(moduleMemory, 0, moduleMemory.Length);
+        print("Read code section as a string");
 
-	version = "default";
+        version = "default";
 
-	vars.SigScan = (Func<Process, int, string, IntPtr>)((proc, offset, signature) => {
-        var target = new SigScanTarget(offset, signature);
-        IntPtr result = IntPtr.Zero;
-        foreach (var page in proc.MemoryPages(true)) {
-            var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((result = scanner.Scan(target)) != IntPtr.Zero) {
+        vars.SigScan = (Func<Process, int, string, IntPtr>)((proc, offset, signature) => {
+            var target = new SigScanTarget(offset, signature);
+            IntPtr result = IntPtr.Zero;
+            foreach (var page in proc.MemoryPages(true)) {
+                var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
+                if ((result = scanner.Scan(target)) != IntPtr.Zero) {
+                    break;
+                }
+            }
+
+            return result;
+        });
+
+        for (;;)
+        {	
+            // First check if this is relive
+            int pos = converted.IndexOf("{DBC2AE1C-A5DE-465F-A89A-C385BE1DEFCC}");
+            if (pos != -1)
+            {
+                print("Relive Buffer match: " + converted.Substring(pos, 50));
+
+                // Find the guid again via signature scanning to get the RVA offset
+                IntPtr scan = vars.SigScan(game, 0, "7B 44 42 43 32 41 45 31 43 2D 41 35 44 45 2D 34 36 35 46 2D 41 38 39 41 2D 43 33 38 35 42 45 31 44 45 46 43 43 7D 00");
+                if (scan != IntPtr.Zero)
+                {
+                    print("Scan = " + scan.ToString());
+
+                    // Point to data after the guid in the AEGameInfo structure
+                    scan += 40;
+
+                    vars.version = "Relive";
+                    
+                    // If this guid exists its a 64bit version of relive
+                    bool is64Bit = converted.IndexOf("{069DDB51-609D-49AB-B69D-5CC6D13E73EE}") != -1;
+                    int gamePointerSize = is64Bit ? 8 : 4;
+
+                    print("Pointer size = " + gamePointerSize.ToString());
+
+                    vars.watchers = new MemoryWatcherList
+                    {
+                        new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (1*gamePointerSize)))) { Name = "LEVEL_ID" },
+                        new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (2*gamePointerSize)))) { Name = "PATH_ID" },
+                        new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (3*gamePointerSize)))) { Name = "CAM_ID" },
+                        new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (4*gamePointerSize)))) { Name = "FMV_ID" },
+                        new MemoryWatcher<int>(new DeepPointer(memory.ReadPointer(scan + (5*gamePointerSize)))) { Name = "gnFrame" },
+                        new MemoryWatcher<short>(new DeepPointer(memory.ReadPointer(scan + (6*gamePointerSize)), new int[] {memory.ReadValue<int>(scan + (7*gamePointerSize))})) { Name = "abeY" },
+                        new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (8*gamePointerSize)))) { Name = "IsPaused" },
+                    };
+                }
+                break;
+            }
+            
+            // Then look in the array for the quit strings which are localised to figure out which language this is (for the original game)
+            pos = converted.IndexOf("Do you really want to quit?");
+            if (pos != -1)
+            {
+                print("English Buffer match: " + converted.Substring(pos, 50));
+                vars.version = "English";
+                vars.watchers = new MemoryWatcherList
+                {
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3030)) { Name = "LEVEL_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3032)) { Name = "PATH_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3034)) { Name = "CAM_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3042)) { Name = "FMV_ID" },
+                    new MemoryWatcher<int>(new DeepPointer(0x1C1B84)) { Name = "gnFrame" },
+                    new MemoryWatcher<short>(new DeepPointer(0x1C1230, new int[] {0xBE})) { Name = "abeY" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C9304)) { Name = "IsPaused" },
+                };
+                break;
+            }
+            
+            pos = converted.IndexOf("Salir, seguro?"); // Only check the ascii chars
+            if (pos != -1) 
+            {
+                print("Buffer match: " + converted.Substring(pos, 50));
+                vars.version = "Spanish";
+                vars.watchers = new MemoryWatcherList
+                {
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C33C0)) { Name = "LEVEL_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C33C2)) { Name = "PATH_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C33C4)) { Name = "CAM_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C33D2)) { Name = "FMV_ID" },
+                    new MemoryWatcher<int>(new DeepPointer(0x1C1F14)) { Name = "gnFrame" },
+                    new MemoryWatcher<short>(new DeepPointer(0x1C1EF8, new int[] {0xBE})) { Name = "abeY" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C9694)) { Name = "IsPaused" },
+                };
+                break;
+            }
+            
+            pos = converted.IndexOf("Voulez-vous vraiment quitter?"); // Only check the ascii chars
+            if (pos != -1) 
+            {
+                print("French Buffer match: " + converted.Substring(pos, 50));
+                vars.version = "French";
+                vars.watchers = new MemoryWatcherList
+                {
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3908)) { Name = "LEVEL_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C390A)) { Name = "PATH_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C390C)) { Name = "CAM_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C391A)) { Name = "FMV_ID" },
+                    new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
+                    new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
+                };
+                break;
+            }
+            
+            pos = converted.IndexOf("Wollen Sie wirklich "); // Only check the ascii chars
+            if (pos != -1)
+            {
+                print("German Buffer match: " + converted.Substring(pos, 50));
+                vars.version = "German";
+                vars.watchers = new MemoryWatcherList
+                {
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3A08)) { Name = "LEVEL_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3A0A)) { Name = "PATH_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3A0C)) { Name = "CAM_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3A1A)) { Name = "FMV_ID" },
+                    new MemoryWatcher<int>(new DeepPointer(0x1C255C)) { Name = "gnFrame" },
+                    new MemoryWatcher<short>(new DeepPointer(0x1C2540, new int[] {0xBE})) { Name = "abeY" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C9CDC)) { Name = "IsPaused" },
+                };
+                break;
+            }
+            
+            pos = converted.IndexOf("Vuoi davvero uscire?");
+            if (pos != -1)
+            {
+                print("Italian Buffer match: " + converted.Substring(pos, 50));
+                vars.version = "Italian";
+                vars.watchers = new MemoryWatcherList
+                {
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C377A)) { Name = "LEVEL_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C377C)) { Name = "PATH_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C377E)) { Name = "CAM_ID" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C3782)) { Name = "FMV_ID" },
+                    new MemoryWatcher<int>(new DeepPointer(0x1C22C4)) { Name = "gnFrame" },
+                    new MemoryWatcher<short>(new DeepPointer(0x1C22A8, new int[] {0xBE})) { Name = "abeY" },
+                    new MemoryWatcher<byte>(new DeepPointer(0x1C9A44)) { Name = "IsPaused" },
+                };
+                break;
+            }
+            else
+            {
+                // Unknown
+                print("Unknown game");
                 break;
             }
         }
-
-        return result;
-    });
-
-	for (;;)
-	{	
-		// First check if this is relive
-		int pos = converted.IndexOf("{DBC2AE1C-A5DE-465F-A89A-C385BE1DEFCC}");
-		if (pos != -1)
-		{
-			print("Relive Buffer match: " + converted.Substring(pos, 50));
-
-			// Find the guid again via signature scanning to get the RVA offset
-			IntPtr scan = vars.SigScan(game, 0, "7B 44 42 43 32 41 45 31 43 2D 41 35 44 45 2D 34 36 35 46 2D 41 38 39 41 2D 43 33 38 35 42 45 31 44 45 46 43 43 7D 00");
-			if (scan != IntPtr.Zero)
-			{
-				print("Scan = " + scan.ToString());
-
-				// Point to data after the guid in the AEGameInfo structure
-				scan += 40;
-
-				vars.version = "Relive";
-				
-				// If this guid exists its a 64bit version of relive
-				bool is64Bit = converted.IndexOf("{069DDB51-609D-49AB-B69D-5CC6D13E73EE}") != -1;
-				int gamePointerSize = is64Bit ? 8 : 4;
-
-				print("Pointer size = " + gamePointerSize.ToString());
-
-				vars.watchers = new MemoryWatcherList
-				{
-					new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (1*gamePointerSize)))) { Name = "LEVEL_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (2*gamePointerSize)))) { Name = "PATH_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (3*gamePointerSize)))) { Name = "CAM_ID" },
-					new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (4*gamePointerSize)))) { Name = "FMV_ID" },
-					new MemoryWatcher<int>(new DeepPointer(memory.ReadPointer(scan + (5*gamePointerSize)))) { Name = "gnFrame" },
-					new MemoryWatcher<short>(new DeepPointer(memory.ReadPointer(scan + (6*gamePointerSize)), new int[] {memory.ReadValue<int>(scan + (7*gamePointerSize))})) { Name = "abeY" },
-					new MemoryWatcher<byte>(new DeepPointer(memory.ReadPointer(scan + (8*gamePointerSize)))) { Name = "IsPaused" },
-				};
-			}
-			break;
-		}
-		
-		// Then look in the array for the quit strings which are localised to figure out which language this is (for the original game)
-		pos = converted.IndexOf("Do you really want to quit?");
-		if (pos != -1)
-		{
-			print("English Buffer match: " + converted.Substring(pos, 50));
-			vars.version = "English";
-			vars.watchers = new MemoryWatcherList
-			{
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3030)) { Name = "LEVEL_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3032)) { Name = "PATH_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3034)) { Name = "CAM_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3042)) { Name = "FMV_ID" },
-				new MemoryWatcher<int>(new DeepPointer(0x1C1B84)) { Name = "gnFrame" },
-				new MemoryWatcher<short>(new DeepPointer(0x1C1230, new int[] {0xBE})) { Name = "abeY" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C9304)) { Name = "IsPaused" },
-			};
-			break;
-		}
-		
-		pos = converted.IndexOf("Salir, seguro?"); // Only check the ascii chars
-		if (pos != -1) 
-		{
-			print("Buffer match: " + converted.Substring(pos, 50));
-			vars.version = "Spanish";
-			vars.watchers = new MemoryWatcherList
-			{
-				new MemoryWatcher<byte>(new DeepPointer(0x1C33C0)) { Name = "LEVEL_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C33C2)) { Name = "PATH_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C33C4)) { Name = "CAM_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C33D2)) { Name = "FMV_ID" },
-				new MemoryWatcher<int>(new DeepPointer(0x1C1F14)) { Name = "gnFrame" },
-				new MemoryWatcher<short>(new DeepPointer(0x1C1EF8, new int[] {0xBE})) { Name = "abeY" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C9694)) { Name = "IsPaused" },
-			};
-			break;
-		}
-		
-		pos = converted.IndexOf("Voulez-vous vraiment quitter?"); // Only check the ascii chars
-		if (pos != -1) 
-		{
-			print("French Buffer match: " + converted.Substring(pos, 50));
-			vars.version = "French";
-			vars.watchers = new MemoryWatcherList
-			{
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3908)) { Name = "LEVEL_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C390A)) { Name = "PATH_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C390C)) { Name = "CAM_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C391A)) { Name = "FMV_ID" },
-				new MemoryWatcher<int>(new DeepPointer(0x1C245C)) { Name = "gnFrame" },
-				new MemoryWatcher<short>(new DeepPointer(0x1C2440, new int[] {0xBE})) { Name = "abeY" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C9BDC)) { Name = "IsPaused" },
-			};
-			break;
-		}
-		
-		pos = converted.IndexOf("Wollen Sie wirklich "); // Only check the ascii chars
-		if (pos != -1)
-		{
-			print("German Buffer match: " + converted.Substring(pos, 50));
-			vars.version = "German";
-			vars.watchers = new MemoryWatcherList
-			{
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3A08)) { Name = "LEVEL_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3A0A)) { Name = "PATH_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3A0C)) { Name = "CAM_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3A1A)) { Name = "FMV_ID" },
-				new MemoryWatcher<int>(new DeepPointer(0x1C255C)) { Name = "gnFrame" },
-				new MemoryWatcher<short>(new DeepPointer(0x1C2540, new int[] {0xBE})) { Name = "abeY" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C9CDC)) { Name = "IsPaused" },
-			};
-			break;
-		}
-		
-		pos = converted.IndexOf("Vuoi davvero uscire?");
-		if (pos != -1)
-		{
-			print("Italian Buffer match: " + converted.Substring(pos, 50));
-			vars.version = "Italian";
-			vars.watchers = new MemoryWatcherList
-			{
-				new MemoryWatcher<byte>(new DeepPointer(0x1C377A)) { Name = "LEVEL_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C377C)) { Name = "PATH_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C377E)) { Name = "CAM_ID" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C3782)) { Name = "FMV_ID" },
-				new MemoryWatcher<int>(new DeepPointer(0x1C22C4)) { Name = "gnFrame" },
-				new MemoryWatcher<short>(new DeepPointer(0x1C22A8, new int[] {0xBE})) { Name = "abeY" },
-				new MemoryWatcher<byte>(new DeepPointer(0x1C9A44)) { Name = "IsPaused" },
-			};
-			break;
-		}
-		else
-		{
-			// Unknown
-			print("Unknown game");
-			break;
-		}
-	}
-// ###################################### FROM LINE 113 TO THIS LINE IS PAUL'S BLACK MAGIC ###############################################
+    }
+// ###################################### FROM LINE 149 TO THIS LINE IS PAUL'S BLACK MAGIC ###############################################
 
 	if (settings["100Rate"]){
 		refreshRate = 100;
@@ -304,7 +325,6 @@ init
 	vars.DEBUG_CurrentPositionAndTime = "Enter on the game first through the Start menu ;)";
 	vars.DEBUG_LocationLastSplit = "The first split will save the values of the game.";
 	vars.GNFrame = 0;
-	// vars.LOG_ModuleMemory = modules.First().ModuleMemorySize;	
 	
 	vars.preSplitNecrum = false;
 	vars.preSplitMudomo = false;
@@ -341,6 +361,78 @@ init
 // MORE OF PAUL MAGIC, IT SEEMS!
 update
 {
+    if (vars.duckstation) {
+        // Find base RAM address in Duckstation by searching its memory pages.
+        // Do this periodically (using stopwatch to determine when to search again) 
+        // instead of every update to reduce unnecessary computation.
+        if (!vars.duckstationBaseRAMAddressFound) {
+            if (!vars.duckstationStopwatch.IsRunning || vars.duckstationStopwatch.ElapsedMilliseconds > vars.DUCKSTATION_ADDRESS_SEARCH_INTERVAL) {
+                vars.duckstationStopwatch.Start();
+                List<MemoryBasicInformation> memoryModules = new List<MemoryBasicInformation>();
+				memoryModules.AddRange(game.MemoryPages(true).Where(p => p.Type == MemPageType.MEM_MAPPED && p.RegionSize == (UIntPtr)0x800000));
+				memoryModules.AddRange(game.MemoryPages(true).Where(p => p.Type == MemPageType.MEM_MAPPED && p.RegionSize == (UIntPtr)0x200000));
+				print("Searching through DuckStation memory pages, count: " + memoryModules.Count.ToString());
+				foreach (var module in memoryModules) {
+                    var moduleMemory = memory.ReadBytes(module.BaseAddress, (int)module.RegionSize);
+                    string converted = Encoding.UTF8.GetString(moduleMemory, 0, moduleMemory.Length);
+                    int pos = -1;
+                    
+                    for (;;)
+                    {
+                        pos = converted.IndexOf("SLUS_007.10"); // US version will have this
+                        if (pos != -1)
+                        {
+                            print("SLUS_007.10");
+
+                            vars.duckstationStopwatch.Reset();
+                            vars.baseRAMAddress = module.BaseAddress;
+                            vars.duckstationBaseRAMAddressFound = true;
+                            vars.version = "DuckStation, AE US";
+                            vars.SPLIT_INFO = "Autosplitter started. Game version detected-> " + vars.version;
+                            vars.abeYoffset = 0xBE;
+                            vars.watchers = new MemoryWatcherList
+                            {
+                                new MemoryWatcher<byte>(new DeepPointer(vars.baseRAMAddress + 0x85DF4)) { Name = "LEVEL_ID" },       //0x1C3030
+                                new MemoryWatcher<byte>(new DeepPointer(vars.baseRAMAddress + 0x85DF6)) { Name = "PATH_ID" },        //0x1C3032
+                                new MemoryWatcher<byte>(new DeepPointer(vars.baseRAMAddress + 0x85DF8)) { Name = "CAM_ID" },         //0x1C3034
+                                new MemoryWatcher<byte>(new DeepPointer(vars.baseRAMAddress + 0x85E06)) { Name = "FMV_ID" },         //0x1C3042
+                                new MemoryWatcher<int>(new DeepPointer(vars.baseRAMAddress + 0x7E3F8)) { Name = "gnFrame" },         //0x1C1B84
+                                new MemoryWatcher<int>(new DeepPointer(vars.baseRAMAddress + 0x7DAA4)) { Name = "abeY" },            //0x1C1230
+                                new MemoryWatcher<byte>(new DeepPointer(vars.baseRAMAddress + 0x86684)) { Name = "IsPaused" },       //0x1C9304
+                            };
+                            break;
+                        }
+                        
+                        break;
+                    }
+                    
+                    if (vars.duckstationBaseRAMAddressFound)
+					{
+						print("valid module found");
+					}
+                }
+                
+                if (vars.baseRAMAddress == IntPtr.Zero) {
+					vars.duckstationStopwatch.Restart();
+					print("valid module not found");
+					return false;
+				}
+            }
+            else {
+                return false;
+            }
+        }
+        
+        // Verify base RAM address is still valid on each update
+        IntPtr temp1 = vars.baseRAMAddress;
+        IntPtr temp2 = IntPtr.Zero;
+        if (!game.ReadPointer(temp1, out temp2)) {
+            vars.duckstationBaseRAMAddressFound = false;
+            vars.baseRAMAddress = IntPtr.Zero;
+            return false;
+        }
+    }
+    
     vars.watchers.UpdateAll(game);
 /* 
 	print("GnFrame = " + vars.watchers["gnFrame"].Current.ToString());
@@ -350,6 +442,22 @@ update
 	print("FMV_ID = " + vars.watchers["FMV_ID"].Current.ToString());
 	print("abeY = " + vars.watchers["abeY"].Current.ToString());
 	print("IsPaused = " + vars.watchers["IsPaused"].Current.ToString()); */
+    
+    // debug stuff
+    // vars.LEVEL_ID = vars.watchers["LEVEL_ID"].Current;
+    // vars.PATH_ID = vars.watchers["PATH_ID"].Current;
+    // vars.CAM_ID = vars.watchers["CAM_ID"].Current;
+    // vars.FMV_ID = vars.watchers["FMV_ID"].Current;
+    // if (vars.duckstation) {
+        // int abeOffset = (int)(vars.watchers["abeY"].Current - 0x80000000);
+        // int abeYoffset = abeOffset + vars.abeYoffset;
+        // IntPtr totalAbeYoffset = vars.baseRAMAddress + abeYoffset;
+        // vars.abeY = memory.ReadValue<short>(totalAbeYoffset);
+    // }
+    // else {
+        // vars.abeY = vars.watchers["abeY"].Current;
+    // }
+    // vars.IsPaused = vars.watchers["IsPaused"].Current;
 }
 // BETTER THAN RON'S MAGIC AT LEAST-> https://youtu.be/avOsvIWJlQk?t=72
 
@@ -470,7 +578,7 @@ exit
 reset
 {
 	// Upon reaching the Backstory screen
-	if (vars.watchers["LEVEL_ID"].Current == 0 && vars.watchers["CAM_ID"].Old == 1 && vars.watchers["CAM_ID"].Current == 12) {
+	if (vars.watchers["LEVEL_ID"].Current == 0 && (vars.watchers["CAM_ID"].Old == 1 || vars.watchers["CAM_ID"].Old == 5) && vars.watchers["CAM_ID"].Current == 12) {
 		print("Do restart");	
 		vars.StartgnFrame = -1;	
 		vars.Epoch = 0;
